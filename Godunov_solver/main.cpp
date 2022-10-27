@@ -9,7 +9,7 @@ int main() {
     double x_0 = 0;
     double x_n = 1;
     double x_c = 0.5;
-    double time = 0.5;
+    double time = 2;
     int N = 1000;
     double r_l = 1;
     double u_l = 0;

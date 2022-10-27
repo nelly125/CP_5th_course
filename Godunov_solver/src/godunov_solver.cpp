@@ -127,14 +127,15 @@ void solver::solve_system(double x_0, double x_n, double x_c, double t, int N, d
   double xi_0, xi_1;
 
   while (ctime < time) {
-    if (step % 100 == 0) {
+    if (step % 10 == 0) {
       output_parameters_to_file(output_parameters, gas_0, ctime, left_0, diaph_0, right_0, i_contact, N);
       std::cout << ctime << std::endl;
     }
 
     dt_1 = compute_dt(gas_0, N, i_contact, dx_left_0, dx_right_0);
 
-    gas_0[0].p = 1 + 0.5 * sin(100* (ctime + dt_1));
+    gas_0[0].p = 1 + 0.5 * sin(50* (ctime + dt_1));
+    gas_0[N - 1].p = 1;
 //    gas_0[0].p = 0.5;
 
 
