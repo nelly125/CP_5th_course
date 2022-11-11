@@ -10,15 +10,19 @@ struct gas_parameters {
   double p;
 
   double get_total_energy() const {
-    return pow(u, 2.) + p / ((GAMMA - 1) * r);
+    return r * (p / (r * (GAMMA - 1)) + pow(u, 2) / 2);
   }
 
   double get_kinetic_energy() const {
-    return pow(u, 2.);
+    return r * pow(u, 2.) / 2.;
   }
 
   double get_internal_energy() const {
-    return p / ((GAMMA - 1) * r);
+    return p / ((GAMMA - 1) );
+  }
+
+  double impedans() const {
+    return r * sqrt(GAMMA * p / r);
   }
 
   friend std::ostream &operator<<(std::ostream &os, const gas_parameters &gas);

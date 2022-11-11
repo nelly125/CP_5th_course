@@ -7,12 +7,12 @@
 
 #include <filesystem>
 
-auto mk_dir(int N, double time) -> std::string {
+auto mk_dir( uint32_t N, double time ) -> std::string {
 
   std::cout << std::filesystem::current_path() << std::endl;
 
   std::string directory = "./results/piston_";
-  int check;
+  uint32_t check;
 
   std::ostringstream streamObj3;
   streamObj3 << std::fixed;
@@ -29,7 +29,7 @@ auto mk_dir(int N, double time) -> std::string {
   temp_string = std::to_string(OMEGA);
   directory += temp_string + "_";*/
 
-    std::cout << directory << std::endl;
+  std::cout << directory << std::endl;
 
   check = mkdir(directory.c_str(), 0777);
   if (!check)
@@ -51,7 +51,7 @@ auto mk_dir(int N, double time) -> std::string {
   return directory;
 }
 
-void plots(const std::string &directory, int N) {
+void plots( const std::string &directory, uint32_t N ) {
   std::string temp_string;
   std::string python_script;
 
@@ -61,4 +61,29 @@ void plots(const std::string &directory, int N) {
   python_script += directory;
   if (system(python_script.c_str()) == -1) {
     throw std::runtime_error("bad script");
-  }}
+  }
+
+  temp_string = std::to_string(N);
+  python_script = "python3 ./src/plots_scripts/trajectories_plots.py ";
+  python_script += temp_string + " ";
+  python_script += directory;
+  if (system(python_script.c_str()) == -1) {
+    throw std::runtime_error("bad script");
+  }
+
+  temp_string = std::to_string(N);
+  python_script = "python3 ./src/plots_scripts/delta_energy_plots.py ";
+  python_script += temp_string + " ";
+  python_script += directory;
+  if (system(python_script.c_str()) == -1) {
+    throw std::runtime_error("bad script");
+  }
+
+  temp_string = std::to_string(N);
+  python_script = "python3 ./src/plots_scripts/energy_plots.py ";
+  python_script += temp_string + " ";
+  python_script += directory;
+  if (system(python_script.c_str()) == -1) {
+    throw std::runtime_error("bad script");
+  }
+}

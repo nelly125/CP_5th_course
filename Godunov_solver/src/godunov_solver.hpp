@@ -6,37 +6,50 @@
 #include "../gas_parameters.hpp"
 class solver {
 public:
-    solver() = default;
+  solver() = default;
 
-    ~solver() = default;
+  ~solver() = default;
 /*
-    void solve_system(double x_0, double x_n, double x_c, double time, int N,
+    void solve_system(double x_0, double x_n, double x_c, double time, uint32_t N,
                       double r, double u, double p);*/
 
-    void solve_system(double x_0, double x_n, double x_c, double time, int N,
-                      double r_l, double u_l, double p_l,
-                      double r_r, double u_r, double p_r);
+  static void solve_system( double x_0, double x_n, double x_c, double time, uint32_t N,
+                     double r_l, double u_l, double p_l,
+                     double r_r, double u_r, double p_r );
 
 private:
 
-  void output_parameters_to_file(std::ostream out, const std::string& dir);
-  static double find_s_cell(gas_parameters left, gas_parameters right);
-  static double find_x(int j, double left, double diaph, double right, int N, int i_contact);
-  static void get_values(int k, int N, bool minmod_flag, gas_parameters gas, double &r, double &u, double &p);
-  static double compute_dt(const std::vector<gas_parameters>&,
-                    int N,
-                    int i_contact,
-                    double dx_left_0,
-                    double dx_right_0);
-  static void output_parameters_to_file(std::ostream& out, const std::vector<gas_parameters>& gas, double time);
-  void output_parameters_to_file(std::ostream &out,
-                                 const std::vector<gas_parameters> gas,
-                                 double time,
-                                 double left,
-                                 double diaph,
-                                 double right,
-                                 int i_contact,
-                                 int N);
+  static double find_s_cell( gas_parameters left, gas_parameters right );
+  static double find_x( uint32_t j, double left, double diaph, double right, uint32_t N, uint32_t i_contact );
+  static double compute_dt( const std::vector<gas_parameters> &,
+                            uint32_t N,
+                            uint32_t i_contact,
+                            double dx_left_0,
+                            double dx_right_0 );
+  static void output_parameters_to_file( std::ostream &out,
+                                         const std::vector<gas_parameters> &gas,
+                                         double time,
+                                         double left,
+                                         double diaph,
+                                         double right,
+                                         uint32_t i_contact,
+                                         uint32_t N );
+  static void trajectory_to_file( std::ostream &out,
+                           double time,
+                           double left,
+                           double diaph,
+                           double right );
+
+  static void get_values( uint32_t k,
+                   uint32_t N,
+                   bool minmod_flag,
+                   const std::vector<gas_parameters> &gas,
+                   double &r,
+                   double &u,
+                   double &p );
+  static double total_energy( const std::vector<gas_parameters> &gas, uint32_t i_contact, double dx_left, double dx_right );
+  static double total_kinetic_energy( const std::vector<gas_parameters> &gas );
+  static double total_internal_energy( const std::vector<gas_parameters> &gas );
 };
 
 #endif //GODUNOV_SOLVER_GODUNOV_SOLVER_HPP
