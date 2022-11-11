@@ -32,12 +32,7 @@ void solver::get_values( uint32_t k,
     r = gas[k].r + uint32_t(minmod_flag) * 1. / 2 * minmod(gas[k + 1].r - gas[k].r, gas[k].r - gas[k - 1].r);
     u = gas[k].u + uint32_t(minmod_flag) * 1. / 2 * minmod(gas[k + 1].u - gas[k].u, gas[k].u - gas[k - 1].u);
     p = gas[k].p + uint32_t(minmod_flag) * 1. / 2 * minmod(gas[k + 1].p - gas[k].p, gas[k].p - gas[k - 1].p);
-    /*  if( fabs(1. / 2 * minmod(gas[k + 1].r - gas[k].r, gas[k].r - gas[k - 1].r) )> 1e-4) {
-        std::cout << "minmod " <<  1. / 2 * minmod(gas[k + 1].r - gas[k].r, gas[k].r - gas[k - 1].r) << std::endl;
-
-      }*/
   }
-
 }
 
 double solver::compute_dt( const std::vector<gas_parameters> &gas,
@@ -63,8 +58,19 @@ double solver::compute_dt( const std::vector<gas_parameters> &gas,
   return dt;
 }
 
-void solver::solve_system( double x_0, double x_n, double x_c, double t, uint32_t N, double r_l, double u_l, double p_l,
-                           double r_r, double u_r, double p_r ) {
+std::string solver::solve_system( double x_0,
+                                  double x_n,
+                                  double x_c,
+                                  double t,
+                                  uint32_t N,
+                                  double r_l,
+                                  double u_l,
+                                  double p_l,
+                                  double r_r,
+                                  double u_r,
+                                  double p_r,
+                                  double _amplitude,
+                                  double _omega ) {
 
   std::vector<gas_parameters> gas_0(N);
   std::vector<gas_parameters> gas_1(N);
@@ -72,8 +78,9 @@ void solver::solve_system( double x_0, double x_n, double x_c, double t, uint32_
   double time = t;
   double left_0 = x_0;
   double right_0 = x_n;
-  double n_cells = N;
   double diaph_0;
+
+  double n_cells = N;
   bool contact = true;
 
   uint32_t i_contact;
@@ -94,12 +101,21 @@ void solver::solve_system( double x_0, double x_n, double x_c, double t, uint32_
 
   double Energy_0, Energy_1, delta_Energy;
   double A_left_piston, A_right_piston;
-//  double A_both_pistons;
+  double A_both_pistons;
 
   double kinetic_energy, internal_energy;
 
+  double amplitude;
+  double omega;
+
   diaph_0 = x_c;
+  if (diaph_0 < left_0 || right_0 < left_0) {
+    throw std::runtime_error("invalid data");
+  }
   i_contact = 0;
+
+  amplitude = _amplitude;
+  omega = _omega;
 
   for (uint32_t i = 0; i < N; ++i) {
     double dx = (right_0 - left_0) / n_cells;
@@ -119,6 +135,8 @@ void solver::solve_system( double x_0, double x_n, double x_c, double t, uint32_
     }
   }
 
+  std::cout << i_contact << std::endl;
+
   n = i_contact;
   m = N - i_contact;
 
@@ -134,18 +152,19 @@ void solver::solve_system( double x_0, double x_n, double x_c, double t, uint32_
   kinetic_energy = total_kinetic_energy(gas_0);
   internal_energy = total_internal_energy(gas_0);
 
-  std::string dir = mk_dir(N, time);
+  std::string dir = mk_dir(N, time, amplitude, omega, r_r, x_c);
+  std::string data_dir = dir + "/data/";
   std::ofstream output_parameters;
-  output_parameters.open(dir + "piston_r_u_p.txt");
+  output_parameters.open(data_dir + "piston_r_u_p.txt");
 
   std::ofstream output_trajectories;
-  output_trajectories.open(dir + "trajectories.txt");
+  output_trajectories.open(data_dir + "trajectories.txt");
 
   std::ofstream output_delta_energy;
-  output_delta_energy.open(dir + "delta_energy.txt");
+  output_delta_energy.open(data_dir + "delta_energy.txt");
 
   std::ofstream output_energy;
-  output_energy.open(dir + "energy.txt");
+  output_energy.open(data_dir + "energy.txt");
 
   double ctime = 0;
 
@@ -161,23 +180,34 @@ void solver::solve_system( double x_0, double x_n, double x_c, double t, uint32_
   double dx_1, dx_2;
   double xi_0, xi_1;
 
-  bool piston_wave_flag = true;
+//  bool piston_wave_flag = true;
 
   double U_0, P_0, a_0;
   double U_n, P_n, a_n;
 
+  uint32_t output_N;
+  if (time > 10) {
+    output_N = N * 10;
+  } else {
+    output_N = N;
+  }
+
   while (ctime < time) {
-    if (step % 1000 == 0) {
+    if (step % (output_N) == 0) {
       output_parameters_to_file(output_parameters, gas_0, ctime, left_0, diaph_0, right_0, i_contact, N);
       trajectory_to_file(output_trajectories, ctime, left_0, diaph_0, right_0);
       std::cout << ctime << std::endl;
-      output_delta_energy  << ctime << "\t" << delta_Energy << "\t" << A_left_piston << "\t" << A_right_piston << std::endl;
+      output_delta_energy << ctime << "\t" << delta_Energy << "\t" << A_left_piston << "\t" << A_right_piston
+                          << std::endl;
       output_energy << ctime << "\t" << kinetic_energy << "\t" << internal_energy << std::endl;
     }
 
     dt_1 = compute_dt(gas_0, N, i_contact, dx_left_0, dx_right_0);
+    if (ctime + dt_1 > time) {
+      dt_1 = time - ctime;
+    }
 
-    if (piston_wave_flag) {
+/*    if (piston_wave_flag) {
       P_0 = (1.0 + 0.4 * sin(50 * (ctime)));
       if (P_0 < 1) {
         P_0 = 1;
@@ -185,8 +215,8 @@ void solver::solve_system( double x_0, double x_n, double x_c, double t, uint32_
       }
     } else {
       P_0 = 1;
-    }
-    P_0 = (1.0 + 0.1 * sin(50 * (ctime)));
+    }*/
+    P_0 = (1.0 + amplitude * sin(omega * (ctime)));
 
     if (P_0 >= gas_0[0].p) {
       a_0 = sqrt(gas_0[0].r * ((GAMMA + 1) / 2 * P_0 + (GAMMA - 1) / 2 * gas_0[0].p));
@@ -294,21 +324,12 @@ void solver::solve_system( double x_0, double x_n, double x_c, double t, uint32_
     kinetic_energy = total_kinetic_energy(gas_0);
     internal_energy = total_internal_energy(gas_0);
 
-    if (ctime + dt_1 > time) {
-      dt_1 = time - ctime;
-    }
-
     if (ctime > 0) {
       delta_Energy = (Energy_1 - Energy_0) / dt_1;
       A_left_piston = P_0 * U_0;
       A_right_piston = P_n * U_n;
-//      A_both_pistons = A_left_piston - A_right_piston;
-/*      std::cout << delta_Energy <<"\t" << A_left_piston << "\t"  << A_right_piston << "\t" << A_both_pistons << std::endl;
-      try {
-        assert(fabs(delta_Energy - A_both_pistons) < 1e-6);
-      } catch(...) {
-        plots(dir, N);
-      }*/
+      A_both_pistons = A_left_piston - A_right_piston;
+      assert(fabs(delta_Energy - A_both_pistons) < 1e-6);
     }
 
     diaph_0 = diaph_1;
@@ -319,11 +340,20 @@ void solver::solve_system( double x_0, double x_n, double x_c, double t, uint32_
     Energy_0 = Energy_1;
 
     ctime += dt_1;
+//    std::cout << ctime << std::endl;
+
     step++;
   }
+  output_parameters_to_file(output_parameters, gas_0, ctime, left_0, diaph_0, right_0, i_contact, N);
+  trajectory_to_file(output_trajectories, ctime, left_0, diaph_0, right_0);
+  output_delta_energy << ctime << "\t" << delta_Energy << "\t" << A_left_piston << "\t" << A_right_piston << std::endl;
+  output_energy << ctime << "\t" << kinetic_energy << "\t" << internal_energy << std::endl;
+
   std::cout << dir << std::endl;
 
   plots(dir, N);
+
+  return dir;
 }
 
 double solver::find_s_cell( const gas_parameters left, const gas_parameters right ) {
@@ -395,17 +425,17 @@ double solver::total_energy( const std::vector<gas_parameters> &gas,
   return energy;
 }
 
-double solver::total_kinetic_energy(const std::vector<gas_parameters> &gas) {
+double solver::total_kinetic_energy( const std::vector<gas_parameters> &gas ) {
   double kinetic_energy = 0;
-  for (const auto & gas_i : gas) {
+  for (const auto &gas_i : gas) {
     kinetic_energy += gas_i.get_kinetic_energy();
   }
   return kinetic_energy;
 }
 
-double solver::total_internal_energy(const std::vector<gas_parameters> &gas) {
+double solver::total_internal_energy( const std::vector<gas_parameters> &gas ) {
   double internal_energy = 0;
-  for (const auto & gas_i : gas) {
+  for (const auto &gas_i : gas) {
     internal_energy += gas_i.get_internal_energy();
   }
   return internal_energy;

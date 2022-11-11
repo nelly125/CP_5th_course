@@ -6,8 +6,8 @@
 
 //auto mk_dir(const std::vector<double>& parameters) -> std::string;
 
-auto mk_dir(uint32_t N, double time) -> std::string;
+auto mk_dir( uint32_t N, double time, double amplitude, double omega, double sigma, double diaph ) -> std::string;
 
-void plots(const std::string &directory, uint32_t N);
+void plots( const std::string &directory, uint32_t N );
 
 #endif //GODUNOV_SOLVER_SYSTEM_HELPER_HPP

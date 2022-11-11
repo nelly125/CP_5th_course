@@ -13,9 +13,9 @@ public:
     void solve_system(double x_0, double x_n, double x_c, double time, uint32_t N,
                       double r, double u, double p);*/
 
-  static void solve_system( double x_0, double x_n, double x_c, double time, uint32_t N,
-                     double r_l, double u_l, double p_l,
-                     double r_r, double u_r, double p_r );
+  static std::string solve_system( double x_0, double x_n, double x_c, double time, uint32_t N,
+                                   double r_l, double u_l, double p_l,
+                                   double r_r, double u_r, double p_r, double _amplitude, double _omega );
 
 private:
 
@@ -35,19 +35,22 @@ private:
                                          uint32_t i_contact,
                                          uint32_t N );
   static void trajectory_to_file( std::ostream &out,
-                           double time,
-                           double left,
-                           double diaph,
-                           double right );
+                                  double time,
+                                  double left,
+                                  double diaph,
+                                  double right );
 
   static void get_values( uint32_t k,
-                   uint32_t N,
-                   bool minmod_flag,
-                   const std::vector<gas_parameters> &gas,
-                   double &r,
-                   double &u,
-                   double &p );
-  static double total_energy( const std::vector<gas_parameters> &gas, uint32_t i_contact, double dx_left, double dx_right );
+                          uint32_t N,
+                          bool minmod_flag,
+                          const std::vector<gas_parameters> &gas,
+                          double &r,
+                          double &u,
+                          double &p );
+  static double total_energy( const std::vector<gas_parameters> &gas,
+                              uint32_t i_contact,
+                              double dx_left,
+                              double dx_right );
   static double total_kinetic_energy( const std::vector<gas_parameters> &gas );
   static double total_internal_energy( const std::vector<gas_parameters> &gas );
 };

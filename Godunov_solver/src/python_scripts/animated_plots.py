@@ -1,26 +1,29 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button
 import sys
+
+import matplotlib.pyplot as plt
+import pandas as pd
+from matplotlib.widgets import Slider, Button
 
 n_cells = int(sys.argv[1])
 dir_name = sys.argv[2]
+data_dir = dir_name + "/data/"
 
-data = pd.read_csv(dir_name + 'piston_r_u_p.txt', delimiter='\t', names=['r', 'u', 'p', 't'])
+data = pd.read_csv(data_dir + 'piston_r_u_p.txt', delimiter='\t', names=['r', 'u', 'p', 't'])
 data['x'] = data.index
 length = int(len(data.index) / n_cells)
 
 GAMMA = 5. / 3
 
+
 def data_step(i):
     return data.iloc[i * n_cells: (i + 1) * n_cells]
+
 
 fig = plt.figure(figsize=(20, 10))
 ax1 = fig.add_subplot(221)
 ax2 = fig.add_subplot(222)
 ax3 = fig.add_subplot(223)
 ax4 = fig.add_subplot(224)
-
 
 ax1.set_xlabel('x', fontsize=16)
 ax1.set_ylabel('density', fontsize=16)
@@ -57,7 +60,6 @@ ax4.grid(which='major')
 for a in [ax1, ax2, ax3, ax4]:
     for label in (a.get_xticklabels() + a.get_yticklabels()):
         label.set_fontsize(13)
-
 
 ax1.set_title("time: " + str(data_step(0)["t"].iloc[0]) + " s")
 
@@ -97,12 +99,15 @@ def update(val):
     # ax4.set_title("energy: " + str(data_step(step)["E"].sum()) + "      internal energy: " + str(data_step(step)["eps"].sum()))
     fig.canvas.draw_idle()
 
+
 freq_slider.on_changed(update)
 resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
 button = Button(resetax, 'Reset', hovercolor='0.975')
 
+
 def reset(event):
     freq_slider.reset()
+
 
 button.on_clicked(reset)
 
@@ -120,4 +125,3 @@ plt.show()
 # Html_file.close()
 
 plt.close()
-

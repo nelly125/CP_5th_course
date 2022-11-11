@@ -1,8 +1,10 @@
-import pandas as pd
-import matplotlib.pyplot as plt
 import sys
 
+import matplotlib.pyplot as plt
+import pandas as pd
+
 dir_name = sys.argv[2]
+data_dir = dir_name + "/data/"
 
 fig = plt.figure(figsize=(20, 10))
 ax1 = fig.add_subplot(221)
@@ -14,7 +16,7 @@ for a in [ax1, ax2, ax3]:
     for label in (a.get_xticklabels() + a.get_yticklabels()):
         label.set_fontsize(16)
 
-trajectories_data = pd.read_csv(dir_name + "trajectories.txt", delimiter="\t", names = ["t", "left", "diaph", "right"])
+trajectories_data = pd.read_csv(data_dir + "trajectories.txt", delimiter="\t", names=["t", "left", "diaph", "right"])
 
 ax1.plot(trajectories_data["t"], trajectories_data["left"], color='red')
 ax1.set_title("Left side", fontsize=20)
