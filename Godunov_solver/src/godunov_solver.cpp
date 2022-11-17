@@ -185,21 +185,34 @@ std::string solver::solve_system( double x_0,
   double U_0, P_0, a_0;
   double U_n, P_n, a_n;
 
-  uint32_t output_N;
+  uint32_t output_N = N / 10;
   if (time > 10) {
     output_N = N * 10;
-  } else {
+  }
+  if (N < 1000) {
     output_N = N;
   }
 
+  std::cout << output_N << std::endl;
+
+  double output_time = 0;
+
   while (ctime < time) {
-    if (step % (output_N) == 0) {
+
+    if (step % (output_N) == 0 /*ctime > output_time*/) {
       output_parameters_to_file(output_parameters, gas_0, ctime, left_0, diaph_0, right_0, i_contact, N);
+//      trajectory_to_file(output_trajectories, ctime, left_0, diaph_0, right_0);
+//      std::cout << ctime << std::endl;
+      output_time += 0.1;
+    }
+
+    if (step % (output_N) == 0) {
       trajectory_to_file(output_trajectories, ctime, left_0, diaph_0, right_0);
-      std::cout << ctime << std::endl;
       output_delta_energy << ctime << "\t" << delta_Energy << "\t" << A_left_piston << "\t" << A_right_piston
                           << std::endl;
       output_energy << ctime << "\t" << kinetic_energy << "\t" << internal_energy << std::endl;
+      std::cout << ctime << std::endl;
+
     }
 
     dt_1 = compute_dt(gas_0, N, i_contact, dx_left_0, dx_right_0);
@@ -208,7 +221,7 @@ std::string solver::solve_system( double x_0,
     }
 
 /*    if (piston_wave_flag) {
-      P_0 = (1.0 + 0.4 * sin(50 * (ctime)));
+      P_0 = (1.0 + amplitude * sin(omega * (ctime)));
       if (P_0 < 1) {
         P_0 = 1;
         piston_wave_flag = false;
@@ -216,7 +229,17 @@ std::string solver::solve_system( double x_0,
     } else {
       P_0 = 1;
     }*/
-    P_0 = (1.0 + amplitude * sin(omega * (ctime)));
+/*    if (fabs(left_0 -x_0) > 0) {
+      P_0 = (1 / pow(left_1 - left_0, 2.)) * (1.0 + amplitude * sin(omega * (ctime)));
+    } else {
+          P_0 = (1.0 + amplitude * sin(omega * (ctime)));
+    }*/
+
+    if (fabs(left_1 - left_0) > 0) {
+      P_0 = (1 / pow(left_1 - left_0, 2.)) * (1.0 + amplitude * sin(omega * (ctime)));
+    } else {
+      P_0 = (1.0 + amplitude * sin(omega * (ctime)));
+    }
 
     if (P_0 >= gas_0[0].p) {
       a_0 = sqrt(gas_0[0].r * ((GAMMA + 1) / 2 * P_0 + (GAMMA - 1) / 2 * gas_0[0].p));
@@ -291,6 +314,7 @@ std::string solver::solve_system( double x_0,
       } else {
         xi_0 = find_x(i, left_0, diaph_0, right_0, N, i_contact);
         xi_1 = find_x(i, left_1, diaph_1, right_1, N, i_contact);
+
         assert(xi_0 >= left_0 || xi_0 <= right_0);
         assert(xi_1 >= left_1 && xi_1 <= right_1);
 

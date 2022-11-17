@@ -23,7 +23,7 @@ fig = plt.figure(figsize=(20, 10))
 ax1 = fig.add_subplot(221)
 ax2 = fig.add_subplot(222)
 ax3 = fig.add_subplot(223)
-ax4 = fig.add_subplot(224)
+# ax4 = fig.add_subplot(224)
 
 ax1.set_xlabel('x', fontsize=16)
 ax1.set_ylabel('density', fontsize=16)
@@ -49,15 +49,15 @@ ax3.set_ylim([data.p.min() - 0.05, data.p.max() + 0.05])
 # ax3.xaxis.set_major_locator(ticker.MultipleLocator(0.5))
 ax3.grid(which='major')
 
-ax4.set_xlabel('x', fontsize=16)
-ax4.set_ylabel('entropy', fontsize=16)
+# ax4.set_xlabel('x', fontsize=16)
+# ax4.set_ylabel('entropy', fontsize=16)
 # ax4.set_xlim([data.x.min() - 0.05, data.x.max() + 0.05])
 # ax4.set_ylim([data.E.min() - 0.05, data.E.max() + 0.05])
 # ax3.set_ylim([0.5 - 0.05, 2 + 0.05])
 # ax3.xaxis.set_major_locator(ticker.MultipleLocator(0.5))
-ax4.grid(which='major')
+# ax4.grid(which='major')
 
-for a in [ax1, ax2, ax3, ax4]:
+for a in [ax1, ax2, ax3]:
     for label in (a.get_xticklabels() + a.get_yticklabels()):
         label.set_fontsize(13)
 
