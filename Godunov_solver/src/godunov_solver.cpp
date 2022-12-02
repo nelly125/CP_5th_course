@@ -6,6 +6,7 @@
 #include "Riemann_problem/starpu.hpp"
 #include "system/system_helper.hpp"
 #include "Riemann_problem/sample.hpp"
+#include "HLLC/hllc.hpp"
 
 #define sgn( x ) (x>0 ? 1. : -1.)
 
@@ -193,6 +194,8 @@ std::string solver::solve_system( double x_0,
     output_N = N;
   }
 
+  bool hllc_flag = false;
+
   std::cout << output_N << std::endl;
 
   double output_time = 0;
@@ -202,16 +205,16 @@ std::string solver::solve_system( double x_0,
     if (step % (output_N) == 0 /*ctime > output_time*/) {
       output_parameters_to_file(output_parameters, gas_0, ctime, left_0, diaph_0, right_0, i_contact, N);
 //      trajectory_to_file(output_trajectories, ctime, left_0, diaph_0, right_0);
-//      std::cout << ctime << std::endl;
+      std::cout << ctime << std::endl;
       output_time += 0.1;
     }
 
-    if (step % (output_N) == 0) {
+    if (step % (output_N / 10) == 0) {
       trajectory_to_file(output_trajectories, ctime, left_0, diaph_0, right_0);
       output_delta_energy << ctime << "\t" << delta_Energy << "\t" << A_left_piston << "\t" << A_right_piston
                           << std::endl;
       output_energy << ctime << "\t" << kinetic_energy << "\t" << internal_energy << std::endl;
-      std::cout << ctime << std::endl;
+//      std::cout << ctime << std::endl;
 
     }
 
@@ -229,17 +232,9 @@ std::string solver::solve_system( double x_0,
     } else {
       P_0 = 1;
     }*/
-/*    if (fabs(left_0 -x_0) > 0) {
-      P_0 = (1 / pow(left_1 - left_0, 2.)) * (1.0 + amplitude * sin(omega * (ctime)));
-    } else {
-          P_0 = (1.0 + amplitude * sin(omega * (ctime)));
-    }*/
 
-    if (fabs(left_1 - left_0) > 0) {
-      P_0 = (1 / pow(left_1 - left_0, 2.)) * (1.0 + amplitude * sin(omega * (ctime)));
-    } else {
-      P_0 = (1.0 + amplitude * sin(omega * (ctime)));
-    }
+    P_0 = pow(x_0 / left_0 , 2. * GAMMA) * (1.0 + amplitude * sin(omega * (ctime)));
+//    P_0 =  (1.0 + amplitude * sin(omega * (ctime)));
 
     if (P_0 >= gas_0[0].p) {
       a_0 = sqrt(gas_0[0].r * ((GAMMA + 1) / 2 * P_0 + (GAMMA - 1) / 2 * gas_0[0].p));
@@ -295,10 +290,14 @@ std::string solver::solve_system( double x_0,
         s_cell = (xi_1 - xi_0) / dt_1;
         get_values(i, N, minmod_flag, gas_0, r_left, u_left, p_left);
         get_values(i + 1, N, minmod_flag, gas_0, r_right, u_right, p_right);
-        sample(s_cell, r_left, u_left, p_left,
-               r_right, u_right, p_right,
-               1.0, dx_1, P_1, P_2, P_3);
 
+        if (hllc_flag) {
+          hllc(r_left, u_left, p_left, r_right, u_right, p_right, dx_1, 1.0, s_cell, P_1, P_2, P_3);
+        } else {
+          sample(s_cell, r_left, u_left, p_left,
+                 r_right, u_right, p_right,
+                 1.0, dx_1, P_1, P_2, P_3);
+        }
       }
 
       PP_1 = P_1;
@@ -321,10 +320,13 @@ std::string solver::solve_system( double x_0,
         s_cell = (xi_1 - xi_0) / dt_1;
         get_values(i - 1, N, minmod_flag, gas_0, r_left, u_left, p_left);
         get_values(i, N, minmod_flag, gas_0, r_right, u_right, p_right);
-
-        sample(s_cell, r_left, u_left, p_left,
-               r_right, u_right, p_right,
-               1.0, dx_1, P_1, P_2, P_3);
+        if (hllc_flag) {
+          hllc(r_left, u_left, p_left, r_right, u_right, p_right, dx_1, 1.0, s_cell, P_1, P_2, P_3);
+        } else {
+          sample(s_cell, r_left, u_left, p_left,
+                 r_right, u_right, p_right,
+                 1.0, dx_1, P_1, P_2, P_3);
+        }
       }
 
       PP_1 -= P_1;
