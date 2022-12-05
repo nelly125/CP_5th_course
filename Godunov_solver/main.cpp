@@ -341,7 +341,7 @@ int main() {
 //  l_dependency();
 //  grid_search();
 //  solve_parameters(0.05, 10, 15, 0.1, 200, 1000);
-  solve_parameters(0.1, 10, 5, 0.5, 200, 1000);
+  solve_parameters(0.3, 30, 5, 0.5, 5, 1000);
   return 0;
 
 }

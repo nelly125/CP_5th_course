@@ -181,7 +181,7 @@ std::string solver::solve_system( double x_0,
   double dx_1, dx_2;
   double xi_0, xi_1;
 
-//  bool piston_wave_flag = true;
+  bool piston_wave_flag = true;
 
   double U_0, P_0, a_0;
   double U_n, P_n, a_n;
@@ -223,7 +223,7 @@ std::string solver::solve_system( double x_0,
       dt_1 = time - ctime;
     }
 
-/*    if (piston_wave_flag) {
+    if (piston_wave_flag) {
       P_0 = (1.0 + amplitude * sin(omega * (ctime)));
       if (P_0 < 1) {
         P_0 = 1;
@@ -231,9 +231,9 @@ std::string solver::solve_system( double x_0,
       }
     } else {
       P_0 = 1;
-    }*/
+    }
 
-    P_0 = pow(x_0 / left_0 , 2. * GAMMA) * (1.0 + amplitude * sin(omega * (ctime)));
+//    P_0 = pow(x_0 / left_0 , 2. * GAMMA) * (1.0 + amplitude * sin(omega * (ctime)));
 //    P_0 =  (1.0 + amplitude * sin(omega * (ctime)));
 
     if (P_0 >= gas_0[0].p) {

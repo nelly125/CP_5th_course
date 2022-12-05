@@ -3,6 +3,8 @@ import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.widgets import Slider, Button
+import plotly.graph_objects as go
+
 
 n_cells = int(sys.argv[1])
 dir_name = sys.argv[2]
