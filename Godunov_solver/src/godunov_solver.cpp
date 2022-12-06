@@ -181,7 +181,7 @@ std::string solver::solve_system( double x_0,
   double dx_1, dx_2;
   double xi_0, xi_1;
 
-//  bool piston_wave_flag = true;
+  bool piston_wave_flag = true;
 
   double U_0, P_0, a_0;
   double U_n, P_n, a_n;
@@ -198,7 +198,7 @@ std::string solver::solve_system( double x_0,
 
   std::cout << output_N << std::endl;
 
-  double output_time = 0;
+//  double output_time;
 
   while (ctime < time) {
 
@@ -206,7 +206,7 @@ std::string solver::solve_system( double x_0,
       output_parameters_to_file(output_parameters, gas_0, ctime, left_0, diaph_0, right_0, i_contact, N);
 //      trajectory_to_file(output_trajectories, ctime, left_0, diaph_0, right_0);
       std::cout << ctime << std::endl;
-      output_time += 0.1;
+//      output_time += 0.1;
     }
 
     if (step % (output_N / 10) == 0) {
@@ -222,8 +222,7 @@ std::string solver::solve_system( double x_0,
     if (ctime + dt_1 > time) {
       dt_1 = time - ctime;
     }
-
-/*    if (piston_wave_flag) {
+    if (piston_wave_flag) {
       P_0 = (1.0 + amplitude * sin(omega * (ctime)));
       if (P_0 < 1) {
         P_0 = 1;
@@ -231,9 +230,10 @@ std::string solver::solve_system( double x_0,
       }
     } else {
       P_0 = 1;
-    }*/
+    }
 
-    P_0 = pow(x_0 / left_0 , 2. * GAMMA) * (1.0 + amplitude * sin(omega * (ctime)));
+
+//    P_0 = pow(x_0 / left_0 , 2. * GAMMA) * (1.0 + amplitude * sin(omega * (ctime)));
 //    P_0 =  (1.0 + amplitude * sin(omega * (ctime)));
 
     if (P_0 >= gas_0[0].p) {
@@ -257,6 +257,8 @@ std::string solver::solve_system( double x_0,
     s_contact = find_s_cell(gas_0[i_contact - 1], gas_0[i_contact]);
     s_right = U_n;
 
+//    std::cout << s_left << " " << s_right << std::endl;
+
     left_1 = left_0 + s_left * dt_1;
     diaph_1 = diaph_0 + s_contact * dt_1;
     right_1 = right_0 + s_right * dt_1;
@@ -266,6 +268,7 @@ std::string solver::solve_system( double x_0,
 
     for (uint32_t i = 0; i < N; ++i) {
       P_1 = P_2 = P_3 = 0.0;
+      PP_1 = PP_2 = PP_3 = 0.0;
 
       if (i <= i_contact) {
         dx_1 = dx_left_0;
@@ -279,10 +282,9 @@ std::string solver::solve_system( double x_0,
         P_1 = 0;
         P_2 = P_n;
         P_3 = P_n * U_n;
-
       } else {
-        xi_0 = find_x(i + 1, left_0, diaph_0, right_0, N, i_contact);
-        xi_1 = find_x(i + 1, left_1, diaph_1, right_1, N, i_contact);
+        xi_0 = find_x(i, left_0, diaph_0, right_0, N, i_contact);
+        xi_1 = find_x(i, left_1, diaph_1, right_1, N, i_contact);
 
         assert(xi_0 >= left_0 || xi_0 <= right_0);
         assert(xi_1 >= left_1 && xi_1 <= right_1);
@@ -311,8 +313,8 @@ std::string solver::solve_system( double x_0,
         P_2 = P_0;
         P_3 = P_0 * U_0;
       } else {
-        xi_0 = find_x(i, left_0, diaph_0, right_0, N, i_contact);
-        xi_1 = find_x(i, left_1, diaph_1, right_1, N, i_contact);
+        xi_0 = find_x(i - 1, left_0, diaph_0, right_0, N, i_contact);
+        xi_1 = find_x(i - 1, left_1, diaph_1, right_1, N, i_contact);
 
         assert(xi_0 >= left_0 || xi_0 <= right_0);
         assert(xi_1 >= left_1 && xi_1 <= right_1);
@@ -370,12 +372,14 @@ std::string solver::solve_system( double x_0,
 
     step++;
   }
+
+
   output_parameters_to_file(output_parameters, gas_0, ctime, left_0, diaph_0, right_0, i_contact, N);
   trajectory_to_file(output_trajectories, ctime, left_0, diaph_0, right_0);
   output_delta_energy << ctime << "\t" << delta_Energy << "\t" << A_left_piston << "\t" << A_right_piston << std::endl;
   output_energy << ctime << "\t" << kinetic_energy << "\t" << internal_energy << std::endl;
 
-  std::cout << dir << std::endl;
+//  std::cout << dir << std::endl;
 
   plots(dir, N);
 
