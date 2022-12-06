@@ -147,7 +147,7 @@ fig['layout']['yaxis3'].update(range=[data.p.min() - 0.05, data.p.max() + 0.05],
 fig['layout']['xaxis4'].update(range=[data.x.min() - 0.05, data.x.max() + 0.05], title_text='x',
                                title_font={"size": title_font_size},
                                tickfont=dict(family='Rockwell', color='black', size=ticks_font_size))
-fig['layout']['yaxis4'].update(range=[data.s.min() - 0.05, data.s.max() + 0.05], title_text='pressure',
+fig['layout']['yaxis4'].update(range=[data.s.min() - 0.05, data.s.max() + 0.05], title_text='entropy',
                                title_font={"size": title_font_size},
                                tickfont=dict(family='Rockwell', color='black', size=ticks_font_size))
 

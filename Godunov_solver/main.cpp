@@ -326,6 +326,11 @@ void solve_parameters( double amplitude,
   time_log << std::scientific;
   double start_time;
 
+//  std::cout << sigma << std::endl;
+
+
+
+
   start_time = clock();
   dir_name = solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega);
   time_log << dir_name << ": \t" << (clock() - start_time) / CLOCKS_PER_SEC << std::endl;
@@ -341,7 +346,7 @@ int main() {
 //  l_dependency();
 //  grid_search();
 //  solve_parameters(0.05, 10, 15, 0.1, 200, 1000);
-  solve_parameters(0.3, 30, 5, 0.5, 5, 1000);
+  solve_parameters(0.3, 30, 5, 0.5, 2, 1000);
   return 0;
 
 }
