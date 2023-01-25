@@ -3,6 +3,26 @@
 #include <vector>
 #include "./src/godunov_solver.hpp"
 
+double P_function( double x_0, double left_0, double amplitude, double omega, double time ) {
+  return pow(x_0 / left_0, 2. * GAMMA) * (1.0 + amplitude * sin(omega * (time)));
+//  return(1.0 + amplitude * sin(omega * (time)));
+}
+
+double P_function_one_wave( double x_0, double left_0, double amplitude, double omega, double time ) {
+  double P_0;
+  double T = 2 * M_PI / omega;
+  if (time < T) {
+    P_0 = (1.0 + amplitude * sin(omega * (time)));
+    if (P_0 < 1) {
+      P_0 = 1;
+    }
+  } else {
+    P_0 = 1;
+  }
+  return
+      P_0;
+}
+
 void step_dependency() {
   double amplitude;
   double omega;
@@ -38,7 +58,8 @@ void step_dependency() {
 
   for (N = 100; N <= 1000; N *= 10) {
     start_time = clock();
-    dir_name = solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega);
+    dir_name =
+        solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega, P_function, false);
     time_log << dir_name << ": \t" << (clock() - start_time) / CLOCKS_PER_SEC << std::endl;
 
   }
@@ -78,7 +99,8 @@ void pressure_dependency() {
   double start_time;
 
   start_time = clock();
-  dir_name = solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega);
+  dir_name =
+      solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega, P_function, false);
   time_log << dir_name << ": \t" << (clock() - start_time) / CLOCKS_PER_SEC << std::endl;
 
 }
@@ -117,7 +139,8 @@ void amplitude_dependency() {
 
   amplitude = 0.25;
   start_time = clock();
-  dir_name = solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega);
+  dir_name =
+      solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega, P_function, false);
   time_log << dir_name << ": \t" << (clock() - start_time) / CLOCKS_PER_SEC << std::endl;
 
 /*  amplitude = 0.01;
@@ -164,7 +187,8 @@ void omega_dependency() {
   omega = 10;
   while (omega <= 150) {
     start_time = clock();
-    dir_name = solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega);
+    dir_name =
+        solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega, P_function, false);
     time_log << dir_name << ": \t" << (clock() - start_time) / CLOCKS_PER_SEC << std::endl;
     omega += 10;
   }
@@ -206,7 +230,8 @@ void sigma_dependency() {
   while (sigma <= 35) {
     r_r = r_l * sigma;
     start_time = clock();
-    dir_name = solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega);
+    dir_name =
+        solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega, P_function, false);
     time_log << dir_name << ": \t" << (clock() - start_time) / CLOCKS_PER_SEC << std::endl;
     if (fabs(sigma - 1) < 1e-5) {
       sigma = 5;
@@ -252,7 +277,8 @@ void l_dependency() {
   while (l <= 1) {
     x_c = x_0 + l;
     start_time = clock();
-    dir_name = solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega);
+    dir_name =
+        solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega, P_function, false);
     time_log << dir_name << ": \t" << (clock() - start_time) / CLOCKS_PER_SEC << std::endl;
     l += 0.1;
   }
@@ -294,13 +320,28 @@ void grid_search() {
           x_c = x_0 + l;
           r_r = r_l * sigma;
           start_time = clock();
-          dir_name = solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega);
+          dir_name = solver::solve_system(x_0,
+                                          x_n,
+                                          x_c,
+                                          time,
+                                          N,
+                                          r_l,
+                                          u_l,
+                                          p_l,
+                                          r_r,
+                                          u_r,
+                                          p_r,
+                                          amplitude,
+                                          omega,
+                                          P_function,
+                                          false);
           time_log << dir_name << ": \t" << (clock() - start_time) / CLOCKS_PER_SEC << std::endl;
         }
       }
     }
   }
 }
+
 
 void solve_parameters( double amplitude,
                        double omega, double sigma,
@@ -326,13 +367,22 @@ void solve_parameters( double amplitude,
   time_log << std::scientific;
   double start_time;
 
-//  std::cout << sigma << std::endl;
-
-
-
-
   start_time = clock();
-  dir_name = solver::solve_system(x_0, x_n, x_c, time, N, r_l, u_l, p_l, r_r, u_r, p_r, amplitude, omega);
+  dir_name = solver::solve_system(x_0,
+                                  x_n,
+                                  x_c,
+                                  time,
+                                  N,
+                                  r_l,
+                                  u_l,
+                                  p_l,
+                                  r_r,
+                                  u_r,
+                                  p_r,
+                                  amplitude,
+                                  omega,
+                                  P_function_one_wave,
+                                  true);
   time_log << dir_name << ": \t" << (clock() - start_time) / CLOCKS_PER_SEC << std::endl;
 
 }
@@ -346,7 +396,21 @@ int main() {
 //  l_dependency();
 //  grid_search();
 //  solve_parameters(0.05, 10, 15, 0.1, 200, 1000);
-  solve_parameters(0.3, 30, 5, 0.5, 2, 1000);
+//  solve_parameters(0.01, 50, 25, 0.5, 5, 1000);
+//  solve_parameters(0.3, 30, 5, 0.5, 7, 1000);
+  solve_parameters(0.3, 50, 25, 0.3, 7, 1000);
+
+//  double r_0 = 0.05;
+//  double Mach = 100;
+//  double r_left = 2 * (GAMMA + 1)/ (GAMMA + 3) * 1/pow(r_0, 2.);
+//  double u_left = 1;
+//  double p_left = 1 / (GAMMA * pow(Mach, 2.)) * 2 * (GAMMA + 1) / (GAMMA + 3) / pow(r_0, 2.);
+//  double r_right = 1600;
+//  double u_right = 0;
+//  double p_right = 1;
+//
+//  solver::solve_system_spherical(r_0, 2.5, 20, 1000, r_left, u_left, p_left, r_right, u_right, p_right, false);
+//  solver::solve_system_spherical(r_0, 1, 1, 1000, 1, 1, 1, 0.01, 0, 0.01, false);
   return 0;
 
 }

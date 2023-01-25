@@ -17,7 +17,7 @@ ax3 = fig.add_subplot(223)
 
 for ax in [ax1, ax2, ax3]:
     ax.set_xlabel("s", fontsize=16)
-    ax.set_ylabel("x", fontsize=16)
+    ax.set_ylabel("", fontsize=16)
 # ax4 = fig.add_subplot(224)
 
 fig.tight_layout(pad=0.4, h_pad=4, w_pad=4)

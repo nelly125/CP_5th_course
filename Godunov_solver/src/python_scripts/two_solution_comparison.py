@@ -8,8 +8,8 @@ import pandas as pd
 # data_dir_1 = "/home/nelly/Documents/MSU/git/CP_5th_course/Godunov_solver/results/omega_dependency/piston__1000__50.00__0.20__10.00__25.00__2.50/data/"
 # data_dir_2 = "/home/nelly/Documents/MSU/git/CP_5th_course/Godunov_solver/results/omega_dependency/piston__1000__50.00__0.20__70.00__25.00__2.50/data/"
 
-data_dir_1 = "/home/nelly/Documents/MSU/git/CP_5th_course/Godunov_solver/results/sigma_dependency/piston__1000__50.00__0.20__50.00__5.00__2.50/data/"
-data_dir_2 = "/home/nelly/Documents/MSU/git/CP_5th_course/Godunov_solver/results/sigma_dependency/piston__1000__50.00__0.20__50.00__35.00__2.50/data/"
+data_dir_1 = "/Godunov_solver/results/piston/sigma_dependency/piston__1000__50.00__0.20__50.00__5.00__2.50/data/"
+data_dir_2 = "/Godunov_solver/results/piston/sigma_dependency/piston__1000__50.00__0.20__50.00__35.00__2.50/data/"
 
 
 fig = plt.figure(figsize=(18, 10))

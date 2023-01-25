@@ -1,7 +1,8 @@
 import sys
-
-import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib
 
 dir_name = sys.argv[2]
 data_dir = dir_name + "/data/"
@@ -11,29 +12,53 @@ ax1 = fig.add_subplot(221)
 ax2 = fig.add_subplot(222)
 ax3 = fig.add_subplot(223)
 
-for ax in [ax1, ax2, ax3]:
-    ax.set_xlabel("s", fontsize=16)
-    ax.set_ylabel("x", fontsize=16)
-# ax4 = fig.add_subplot(224)
-
-fig.tight_layout(pad=0.4, h_pad=4, w_pad=4)
-plt.subplots_adjust(top=0.85, left=0.1, bottom=0.06)
-
-for a in [ax1, ax2, ax3]:
-    for label in (a.get_xticklabels() + a.get_yticklabels()):
-        label.set_fontsize(16)
-
 trajectories_data = pd.read_csv(data_dir + "trajectories.txt", delimiter="\t", names=["t", "left", "diaph", "right"])
 
-ax1.plot(trajectories_data["t"], trajectories_data["left"], color='red')
-ax1.set_title("Left side", fontsize=20)
-ax2.plot(trajectories_data["t"], trajectories_data["right"], color='green')
-ax2.set_title("Right side", fontsize=20)
-ax3.plot(trajectories_data["t"], trajectories_data["diaph"], color='purple')
-ax3.set_title("Contact trajectory", fontsize=20)
+ax_values = {ax1: "left", ax2: "right", ax3: "diaph"}
+ax_colors = {ax1: "red", ax2: "green", ax3: "purple"}
+ax_names = {ax1: "Left boundary", ax2: "Right boundary", ax3: "Contact trajectory"}
 
-# plt.tick_params(axis='both', which='major', labelsize=17)
+fig.tight_layout(pad=6, h_pad=4, w_pad=6)
+plt.subplots_adjust(top=0.9, left=0.1, bottom=0.06)
+
+for ax in ax_values.keys():
+    frate = 1. / 96
+    ax.plot(trajectories_data["t"], trajectories_data[ax_values[ax]], color=ax_colors[ax])
+    ax.set_title(ax_names[ax], fontsize=20)
+    ax.set_xlabel('x', fontsize=16)
+    ax.set_ylabel('Amplitude', fontsize=16)
+    for label in (ax.get_xticklabels() + ax.get_yticklabels()):
+        label.set_fontsize(16)
 
 fig.savefig(dir_name + "plots/" + "trajectories.png", transparent=False)
+plt.show(block=False)
+plt.close()
+
+fig = plt.figure(figsize=(18, 10))
+ax1 = fig.add_subplot(221)
+ax2 = fig.add_subplot(222)
+ax3 = fig.add_subplot(223)
+
+fig.tight_layout(pad=6, h_pad=4, w_pad=6)
+plt.subplots_adjust(top=0.9, left=0.1, bottom=0.06)
+
+ax_values = {ax1: "left", ax2: "right", ax3: "diaph"}
+ax_colors = {ax1: "red", ax2: "green", ax3: "purple"}
+ax_names = {ax1: "Left boundary", ax2: "Right boundary", ax3: "Contact trajectory"}
+
+for ax in ax_values.keys():
+    frate = 1. / 20
+    Pfft = np.fft.fft(trajectories_data[ax_values[ax]])
+    Pfft[0] = 0
+    freqs = np.fft.fftfreq(len(Pfft), 1. / frate)
+    N = len(Pfft)
+    ax.plot(freqs[:N//2], Pfft[:N//2], color=ax_colors[ax])
+    ax.set_title(ax_names[ax], fontsize=20)
+    ax.set_xlabel('Freq (Hz)', fontsize=16)
+    ax.set_ylabel('FFT Amplitude', fontsize=16)
+    for label in (ax.get_xticklabels() + ax.get_yticklabels()):
+        label.set_fontsize(16)
+
+fig.savefig(dir_name + "plots/" + "trajectories_fourier_transform.png", transparent=False)
 plt.show(block=False)
 plt.close()
