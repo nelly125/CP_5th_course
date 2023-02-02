@@ -21,10 +21,10 @@ def data_step(i):
 
 
 for k in range(len(data)):
-    if k % 1000 == 0:
+    if k % n_cells == 0:
         continue
     else:
-        data["t"].iloc[k] = data_step(k // 1000)["t"].iloc[0]
+        data["t"].iloc[k] = data_step(k // n_cells)["t"].iloc[0]
 
 xi = np.linspace(data.x.min() - 0.05, data.x.max() + 0.05, 100)
 yi = np.linspace(data.t.min() - 0.05, data.t.max() + 0.05, 200)
@@ -39,7 +39,7 @@ for ax in ax_values.keys():
     Xi, Yi = np.meshgrid(xi, yi)
     zi = interpolator(Xi, Yi)
 
-    ax.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
+    # ax.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
     cntr1 = ax.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
 
     fig.colorbar(cntr1, ax=ax)

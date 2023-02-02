@@ -103,7 +103,7 @@ void plots( const std::string &directory, uint32_t N ) {
   std::string python_script;
 
   temp_string = std::to_string(N);
-  python_script = "python3 ./src/python_scripts/run_all_scripts.py ";
+  python_script = "python3 ./src/run_all_scripts.py ";
   python_script += temp_string + " ";
   python_script += directory;
   if (system(python_script.c_str()) == -1) {

@@ -96,7 +96,7 @@ for i in range(0, len(fig.data), 4):
     sliders = [dict(
         active=0,
         currentvalue={"prefix": "Time: ",
-                      "suffix": " seconds",
+                      "suffix": "",
                       "font": {"size": 25}},
         pad={"t": 50},
         steps=steps

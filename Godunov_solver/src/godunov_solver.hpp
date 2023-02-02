@@ -5,6 +5,9 @@
 #include <vector>
 #include <functional>
 #include "../gas_parameters.hpp"
+
+enum boundaries { piston, soft, hard_wall };
+
 class solver {
 public:
   solver() = default;
@@ -31,19 +34,16 @@ public:
                                                                double left_0,
                                                                double amplitude,
                                                                double omega,
-                                                               double time )> &P_func, bool hllc_flag );
+                                                               double time )> &P_func,
+                                   const std::function<double( double x_0,
+                                                               double left_0,
+                                                               double amplitude,
+                                                               double omega,
+                                                               double time )> &right_piston_func,
+                                   boundaries left_boundary,
+                                   boundaries right_boundary,
+                                   bool hllc_flag );
 
-  static std::string solve_system_spherical( double x_0,
-                                             double x_n,
-                                             double t,
-                                             uint32_t N,
-                                             double r_l,
-                                             double u_l,
-                                             double p_l,
-                                             double r_r,
-                                             double u_r,
-                                             double p_r,
-                                             bool hllc_flag );
 
 private:
 
@@ -55,8 +55,8 @@ private:
                             double dx_left_0,
                             double dx_right_0 );
   static double compute_dt( const std::vector<gas_parameters> &gas,
-                             uint32_t N,
-                             double dx);
+                            uint32_t N,
+                            double dx );
 
   static void output_parameters_to_file( std::ostream &out,
                                          const std::vector<gas_parameters> &gas,
@@ -68,11 +68,11 @@ private:
                                          uint32_t N );
 
   static void output_parameters_to_file( std::ostream &out,
-                                          const std::vector<gas_parameters> &gas,
-                                          double time,
-                                          double left,
-                                          double right,
-                                          uint32_t N );
+                                         const std::vector<gas_parameters> &gas,
+                                         double time,
+                                         double left,
+                                         double right,
+                                         uint32_t N );
 
   static void trajectory_to_file( std::ostream &out,
                                   double time,
@@ -93,6 +93,14 @@ private:
                               double dx_right );
   static double total_kinetic_energy( const std::vector<gas_parameters> &gas );
   static double total_internal_energy( const std::vector<gas_parameters> &gas );
+  static void output_cell_params_to_file( std::ostream &out,
+                                          const std::vector<gas_parameters> &gas,
+                                          double time,
+                                          double left,
+                                          double diaph,
+                                          double right,
+                                          uint32_t i_contact,
+                                          uint32_t N );
 };
 
 #endif //GODUNOV_SOLVER_GODUNOV_SOLVER_HPP

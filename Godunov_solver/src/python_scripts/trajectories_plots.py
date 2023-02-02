@@ -19,7 +19,7 @@ ax_colors = {ax1: "red", ax2: "green", ax3: "purple"}
 ax_names = {ax1: "Left boundary", ax2: "Right boundary", ax3: "Contact trajectory"}
 
 fig.tight_layout(pad=6, h_pad=4, w_pad=6)
-plt.subplots_adjust(top=0.9, left=0.1, bottom=0.06)
+plt.subplots_adjust(top=0.9, left=0.1, bottom=0.06, wspace=0.1)
 
 for ax in ax_values.keys():
     frate = 1. / 96
@@ -31,34 +31,5 @@ for ax in ax_values.keys():
         label.set_fontsize(16)
 
 fig.savefig(dir_name + "plots/" + "trajectories.png", transparent=False)
-plt.show(block=False)
-plt.close()
-
-fig = plt.figure(figsize=(18, 10))
-ax1 = fig.add_subplot(221)
-ax2 = fig.add_subplot(222)
-ax3 = fig.add_subplot(223)
-
-fig.tight_layout(pad=6, h_pad=4, w_pad=6)
-plt.subplots_adjust(top=0.9, left=0.1, bottom=0.06)
-
-ax_values = {ax1: "left", ax2: "right", ax3: "diaph"}
-ax_colors = {ax1: "red", ax2: "green", ax3: "purple"}
-ax_names = {ax1: "Left boundary", ax2: "Right boundary", ax3: "Contact trajectory"}
-
-for ax in ax_values.keys():
-    frate = 1. / 20
-    Pfft = np.fft.fft(trajectories_data[ax_values[ax]])
-    Pfft[0] = 0
-    freqs = np.fft.fftfreq(len(Pfft), 1. / frate)
-    N = len(Pfft)
-    ax.plot(freqs[:N//2], Pfft[:N//2], color=ax_colors[ax])
-    ax.set_title(ax_names[ax], fontsize=20)
-    ax.set_xlabel('Freq (Hz)', fontsize=16)
-    ax.set_ylabel('FFT Amplitude', fontsize=16)
-    for label in (ax.get_xticklabels() + ax.get_yticklabels()):
-        label.set_fontsize(16)
-
-fig.savefig(dir_name + "plots/" + "trajectories_fourier_transform.png", transparent=False)
 plt.show(block=False)
 plt.close()
