@@ -415,6 +415,11 @@ std::string solver::solve_system( double x_0,
         assert(xi_1 >= left_1 && xi_1 <= right_1);
 
         s_cell = (xi_1 - xi_0) / dt_1;
+
+        if (i + 1 == i_contact) {
+          assert(fabs(s_cell - s_contact) < 1e-7);
+        }
+
         get_values(i + 1, N, minmod_flag, gas_0, left_0, diaph_0, right_0, i_contact, r_left, u_left, p_left, true);
         get_values(i + 1, N, minmod_flag, gas_0, left_0, diaph_0, right_0, i_contact, r_right, u_right, p_right, false);
 
@@ -461,6 +466,11 @@ std::string solver::solve_system( double x_0,
         assert(xi_1 >= left_1 && xi_1 <= right_1);
 
         s_cell = (xi_1 - xi_0) / dt_1;
+
+        if (i == i_contact) {
+          assert(fabs(s_cell - s_contact) < 1e-7);
+        }
+
         get_values(i, N, minmod_flag, gas_0, left_0, diaph_0, right_0, i_contact, r_left, u_left, p_left, true);
         get_values(i, N, minmod_flag, gas_0, left_0, diaph_0, right_0, i_contact, r_right, u_right, p_right, false);
 
@@ -486,7 +496,7 @@ std::string solver::solve_system( double x_0,
       PP_3 -= P_3;
 
       gas_1[i].r = gas_0[i].r * dx_1 / dx_2 - dt_1 * PP_1 / dx_2;
-      gas_1[i].u = (gas_0[i].u * gas_0[i].r * dx_1 / dx_2 - dt_1 * PP_2 / dx_2) / gas_1[i].r;
+      gas_1[i].u = (gas_0[i].r * gas_0[i].u  * dx_1 / dx_2 - dt_1 * PP_2 / dx_2) / gas_1[i].r;
       gas_1[i].p = ((-dt_1 * PP_3 / dx_2 +
           (gas_0[i].p / (GAMMA - 1.0) + 0.5 * gas_0[i].r * gas_0[i].u * gas_0[i].u) * dx_1 / dx_2) -
           0.5 * gas_1[i].r * gas_1[i].u * gas_1[i].u) * (GAMMA - 1.0);
