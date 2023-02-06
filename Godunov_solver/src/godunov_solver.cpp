@@ -18,22 +18,134 @@ double minmod( double x, double y ) {
   }
 }
 
+void solver::line_equation( uint32_t j,
+                            uint32_t i_contact,
+                            uint32_t N,
+                            double left,
+                            double diaph,
+                            double right,
+                            double y_1,
+                            double y_2,
+                            double &k,
+                            double &b ) {
+  double x_1, x_2;
+
+  double dx_left  = (diaph - left) / i_contact;
+  double dx_right = (right - diaph) / (N - i_contact);
+
+  double dx;
+  if (j < i_contact) {
+    dx = dx_left;
+  } else {
+    dx = dx_right;
+  }
+
+  x_1 = find_x(j, left, diaph, right, N, i_contact) + dx / 2;
+
+  if (j < i_contact) {
+    dx = dx_left;
+  } else {
+    dx = dx_right;
+  }
+
+  x_2 = find_x(j + 1, left, diaph, right, N, i_contact) + dx / 2;
+  k   = (y_2 - y_1) / (x_2 - x_1);
+  b   = (x_2 * y_1 - x_1 * y_2) / (x_2 - x_1);
+}
+
 void solver::get_values( uint32_t k,
                          uint32_t N,
                          bool minmod_flag,
                          const std::vector<gas_parameters> &gas,
+                         double left,
+                         double diaph,
+                         double right,
+                         uint32_t i_contact,
                          double &r,
                          double &u,
-                         double &p ) {
-  if (k == 0 || k == N - 1) {
-    r = gas[k].r;
-    u = gas[k].u;
-    p = gas[k].p;
+                         double &p, bool left_flow ) {
+  uint32_t l;
+  if (left_flow) {
+    l = k - 1;
   } else {
-    r = gas[k].r + uint32_t(minmod_flag) * 1. / 2 * minmod(gas[k + 1].r - gas[k].r, gas[k].r - gas[k - 1].r);
-    u = gas[k].u + uint32_t(minmod_flag) * 1. / 2 * minmod(gas[k + 1].u - gas[k].u, gas[k].u - gas[k - 1].u);
-    p = gas[k].p + uint32_t(minmod_flag) * 1. / 2 * minmod(gas[k + 1].p - gas[k].p, gas[k].p - gas[k - 1].p);
+    l = k;
   }
+  if (k == 0 || k == N - 1 || k == 1 || k == N || !minmod_flag) {
+    r = gas[l].r;
+    u = gas[l].u;
+    p = gas[l].p;
+    return;
+  }
+//  std::cout << k << std::endl;
+
+  if (left_flow) {
+    r = get_left_values(k, N, i_contact, gas[k - 2].r, gas[k - 1].r, gas[k].r, left, diaph, right);
+    u = get_left_values(k, N, i_contact, gas[k - 2].u, gas[k - 1].u, gas[k].u, left, diaph, right);
+    p = get_left_values(k, N, i_contact, gas[k - 2].p, gas[k - 1].p, gas[k].p, left, diaph, right);
+    return;
+  } else {
+    r = get_right_values(k, N, i_contact, gas[k - 1].r, gas[k].r, gas[k + 1].r, left, diaph, right);
+    u = get_right_values(k, N, i_contact, gas[k - 1].u, gas[k].u, gas[k + 1].u, left, diaph, right);
+    p = get_right_values(k, N, i_contact, gas[k - 1].p, gas[k].p, gas[k + 1].p, left, diaph, right);
+  }
+}
+
+double solver::get_left_values( uint32_t k,
+                                uint32_t N,
+                                uint32_t i_contact,
+                                double y1,
+                                double y2,
+                                double y3,
+                                double left,
+                                double diaph,
+                                double right ) {
+  double k_1, k_2, b_1, b_2;
+  line_equation(k - 2, i_contact, N, left, diaph, right, y1, y2, k_1, b_1);
+  line_equation(k - 1, i_contact, N, left, diaph, right, y2, y3, k_2, b_2);
+
+  double x = find_x(k, left, diaph, right, N, i_contact);
+  double y;
+
+  if (k_1 * k_2 <= 0) {
+    y = y2;
+  } else {
+    double r_minmod = minmod(k_1 * x + b_1, k_2 * x + b_2);
+    if (fabs(r_minmod) > 1e-6) {
+      y = r_minmod;
+    } else {
+      y = y2;
+    }
+  }
+  return y;
+}
+
+double solver::get_right_values( uint32_t k,
+                                 uint32_t N,
+                                 uint32_t i_contact,
+                                 double y1,
+                                 double y2,
+                                 double y3,
+                                 double left,
+                                 double diaph,
+                                 double right ) {
+  double k_1, k_2, b_1, b_2;
+  line_equation(k - 1, i_contact, N, left, diaph, right, y1, y2, k_1, b_1);
+  line_equation(k, i_contact, N, left, diaph, right, y2, y3, k_2, b_2);
+
+  double x = find_x(k, left, diaph, right, N, i_contact);
+  double y;
+
+  if (k_1 * k_2 >= 0) {
+    y = y2;
+  } else {
+    double r_minmod = minmod(k_1 * x + b_1, k_2 * x + b_2);
+    if (fabs(r_minmod) > 1e-6) {
+      y = r_minmod;
+    } else {
+      y = y2;
+    }
+  }
+  return y;
 }
 
 double solver::compute_dt( const std::vector<gas_parameters> &gas,
@@ -44,26 +156,11 @@ double solver::compute_dt( const std::vector<gas_parameters> &gas,
   double        dx;
   double        dt = 1e6;
   for (uint32_t i  = 0; i < N - 1; ++i) {
-    if (i <= i_c) {
+    if (i < i_c) {
       dx = left_dx;
     } else {
       dx = right_dx;
     }
-    double c_l = sqrt(GAMMA * gas[i].p / gas[i].r);
-    double c_r = sqrt(GAMMA * gas[i + 1].p / gas[i + 1].r);
-
-    double s_l = fmin(gas[i].u, gas[i + 1].u) - fmax(c_l, c_r);
-    double s_r = fmax(gas[i].u, gas[i + 1].u) + fmax(c_l, c_r);
-    dt = fmin(dx / fmax(fabs(s_l), fabs(s_r)) * CFL, dt);
-  }
-  return dt;
-}
-
-double solver::compute_dt( const std::vector<gas_parameters> &gas,
-                           const uint32_t N,
-                           double dx ) {
-  double        dt = 1e6;
-  for (uint32_t i  = 0; i < N - 1; ++i) {
     double c_l = sqrt(GAMMA * gas[i].p / gas[i].r);
     double c_r = sqrt(GAMMA * gas[i + 1].p / gas[i + 1].r);
 
@@ -250,7 +347,6 @@ std::string solver::solve_system( double x_0,
 
     if (left_boundary == boundaries::piston) {
       P_0 = left_piston_func(x_0, left_0, amplitude, omega, ctime);
-
       if (P_0 >= gas_0[0].p) {
         a_0 = sqrt(gas_0[0].r * ((GAMMA + 1) / 2 * P_0 + (GAMMA - 1) / 2 * gas_0[0].p));
         U_0 = gas_0[0].u + (P_0 - gas_0[0].p) / a_0;
@@ -278,15 +374,14 @@ std::string solver::solve_system( double x_0,
 
     s_left    = U_0;
     s_contact = find_s_cell(gas_0[i_contact - 1], gas_0[i_contact]);
-    std::cout << s_contact << std::endl;
     s_right   = U_n;
 
     left_1  = left_0 + s_left * dt_1;
     diaph_1 = diaph_0 + s_contact * dt_1;
     right_1 = right_0 + s_right * dt_1;
 
-    dx_left_1  = (diaph_1 - left_1) / n;
-    dx_right_1 = (right_1 - diaph_1) / m;
+    dx_left_1  = (diaph_1 - left_1) / i_contact;
+    dx_right_1 = (right_1 - diaph_1) /(N - i_contact);
 
     for (uint32_t i = 0; i < N; ++i) {
       P_1  = P_2  = P_3  = 0.0;
@@ -304,6 +399,14 @@ std::string solver::solve_system( double x_0,
         P_1 = 0;
         P_2 = P_n;
         P_3 = P_n * U_n;
+      } else if (right_boundary == boundaries::soft && i == N - 1) {
+        P_1 = 0;
+        P_2 = gas_0[N - 1].p;
+        P_3 = gas_0[N - 1].p * gas_0[N - 1].u;
+      } else if (right_boundary == boundaries::hard_wall && i == N - 1) {
+        P_1 = 0;
+        P_2 = 0;
+        P_3 = 0;
       } else {
         xi_0 = find_x(i + 1, left_0, diaph_0, right_0, N, i_contact);
         xi_1 = find_x(i + 1, left_1, diaph_1, right_1, N, i_contact);
@@ -312,19 +415,16 @@ std::string solver::solve_system( double x_0,
         assert(xi_1 >= left_1 && xi_1 <= right_1);
 
         s_cell = (xi_1 - xi_0) / dt_1;
-        get_values(i, N, minmod_flag, gas_0, r_left, u_left, p_left);
+        get_values(i + 1, N, minmod_flag, gas_0, left_0, diaph_0, right_0, i_contact, r_left, u_left, p_left, true);
+        get_values(i + 1, N, minmod_flag, gas_0, left_0, diaph_0, right_0, i_contact, r_right, u_right, p_right, false);
 
-        if (right_boundary == boundaries::soft && i == N - 1) {
-          r_right = r_left;
-          u_right = u_left;
-          p_right = p_left;
-        } else if (right_boundary == boundaries::hard_wall && i == N - 1) {
-          r_right = r_left;
-          u_right = -u_left;
-          p_right = p_left;
-        } else {
-          get_values(i + 1, N, minmod_flag, gas_0, r_right, u_right, p_right);
-        }
+/*        r_left = gas_0[i].r;
+        u_left = gas_0[i].u;
+        p_left = gas_0[i].p;
+
+        r_right = gas_0[i + 1].r;
+        u_right = gas_0[i + 1].u;
+        p_right = gas_0[i + 1].p;*/
 
         if (hllc_flag) {
           hllc(r_left, u_left, p_left, r_right, u_right, p_right, dx_1, 1.0, s_cell, P_1, P_2, P_3);
@@ -354,16 +454,23 @@ std::string solver::solve_system( double x_0,
         P_2 = 0;
         P_3 = 0;
       } else {
-        xi_0 = find_x(i , left_0, diaph_0, right_0, N, i_contact);
+        xi_0 = find_x(i, left_0, diaph_0, right_0, N, i_contact);
         xi_1 = find_x(i, left_1, diaph_1, right_1, N, i_contact);
 
         assert(xi_0 >= left_0 || xi_0 <= right_0);
         assert(xi_1 >= left_1 && xi_1 <= right_1);
 
         s_cell = (xi_1 - xi_0) / dt_1;
+        get_values(i, N, minmod_flag, gas_0, left_0, diaph_0, right_0, i_contact, r_left, u_left, p_left, true);
+        get_values(i, N, minmod_flag, gas_0, left_0, diaph_0, right_0, i_contact, r_right, u_right, p_right, false);
 
-        get_values(i - 1, N, minmod_flag, gas_0, r_left, u_left, p_left);
-        get_values(i, N, minmod_flag, gas_0, r_right, u_right, p_right);
+/*        r_left = gas_0[i - 1].r;
+        u_left = gas_0[i - 1].u;
+        p_left = gas_0[i - 1].p;
+
+        r_right = gas_0[i].r;
+        u_right = gas_0[i].u;
+        p_right = gas_0[i].p;*/
 
         if (hllc_flag) {
           hllc(r_left, u_left, p_left, r_right, u_right, p_right, dx_1, 1.0, s_cell, P_1, P_2, P_3);
@@ -458,15 +565,12 @@ void solver::output_parameters_to_file( std::ostream &out,
   out << std::scientific;
   double        xpos;
   for (uint32_t i = 0; i < N; ++i) {
-    if (i <= i_contact) {
+    if (i < i_contact) {
       xpos = left + double(i) / i_contact * (diaph - left);
     } else {
       xpos = diaph + double(i - i_contact) / (N - i_contact) * (right - diaph);
     }
     out << xpos << "\t" << gas[i] << time;
-/*    if (i == 0) {
-      out << time;
-    }*/
     out << std::endl;
   }
 }

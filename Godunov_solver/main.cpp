@@ -57,21 +57,21 @@ void simple_test( double amplitude,
   double x_0 = 0;
   double x_n = 1;
 
-  double x_c = x_0 + l;
+/*  double x_c = x_0 + l;
   double r_l = 1;
   double u_l = 0;
-  double p_l = 1 / GAMMA;
+  double p_l = 1/ GAMMA;
   double r_r = r_l;
   double u_r = u_l;
-  double p_r = p_l;
+  double p_r = p_l;*/
 
-/*  double x_c = 0.5;
-  double r_l = 0.125;
+  double x_c = 0.5;
+  double r_l = 1;
   double u_l = 0;
-  double p_l = 0.1;
-  double r_r = 1;
+  double p_l = 1;
+  double r_r = 0.125;
   double u_r = 0;
-  double p_r = 1;*/
+  double p_r = 0.1;
 
   std::string   dir_name;
   std::ofstream time_log;
@@ -106,8 +106,8 @@ int main() {
               0.2,
               1000,
               P_constant,
-              P_function_one_wave,
-              boundaries::piston,
+              P_constant,
+              boundaries::soft,
               boundaries::soft);
 
   return 0;
