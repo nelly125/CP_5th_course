@@ -9,24 +9,33 @@ double P_function_norm( double x_0, double left_0, double amplitude, double omeg
 //  return(1.0 + amplitude * sin(omega * (time)));
 }
 
+
 double P_function( double x_0, double left_0, double amplitude, double omega, double time ) {
-  return (1 / GAMMA + amplitude * sin(omega * (time)));
+  return (1 + amplitude * sin(omega * (time)));
 }
 
 double P_constant( double x_0, double left_0, double amplitude, double omega, double time ) {
-  return 1.2;
+  return 1;
 }
 
 double P_function_one_wave( double x_0, double left_0, double amplitude, double omega, double time ) {
   double P_0;
   double T = 2 * M_PI / omega;
   if (time < T) {
-    P_0 = (1 / GAMMA + amplitude * sin(omega * (time)));
-/*    if (P_0 < 1) {
-      P_0 = 1 / GAMMA;
-    }*/
+    P_0 = (1 + amplitude * sin(omega * (time)));
   } else {
-    P_0 = 1 / GAMMA;
+    P_0 = 1;
+  }
+  return P_0;
+}
+
+double P_function_one_positive_wave( double x_0, double left_0, double amplitude, double omega, double time ) {
+  double P_0;
+  double T = 2 * M_PI / omega;
+  if (time < T / 2) {
+    P_0 = (1 + amplitude * sin(omega * (time)));
+  } else {
+    P_0 = 1;
   }
   return P_0;
 }

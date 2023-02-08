@@ -8,9 +8,9 @@
 #include "Riemann_problem/sample.hpp"
 #include "HLLC/hllc.hpp"
 
-#define sgn( x ) (x>0 ? 1. : -1.)
+#define sgn(x) (x>0 ? 1. : -1.)
 
-double minmod( double x, double y ) {
+double minmod(double x, double y) {
   if (x * y > 0) {
     return sgn(x) * fmin(fabs(x), fabs(y));
   } else {
@@ -18,19 +18,19 @@ double minmod( double x, double y ) {
   }
 }
 
-void solver::line_equation( uint32_t j,
-                            uint32_t i_contact,
-                            uint32_t N,
-                            double left,
-                            double diaph,
-                            double right,
-                            double y_1,
-                            double y_2,
-                            double &k,
-                            double &b ) {
+void solver::line_equation(uint32_t j,
+                           uint32_t i_contact,
+                           uint32_t N,
+                           double left,
+                           double diaph,
+                           double right,
+                           double y_1,
+                           double y_2,
+                           double &k,
+                           double &b) {
   double x_1, x_2;
 
-  double dx_left  = (diaph - left) / i_contact;
+  double dx_left = (diaph - left) / i_contact;
   double dx_right = (right - diaph) / (N - i_contact);
 
   double dx;
@@ -49,21 +49,21 @@ void solver::line_equation( uint32_t j,
   }
 
   x_2 = find_x(j + 1, left, diaph, right, N, i_contact) + dx / 2;
-  k   = (y_2 - y_1) / (x_2 - x_1);
-  b   = (x_2 * y_1 - x_1 * y_2) / (x_2 - x_1);
+  k = (y_2 - y_1) / (x_2 - x_1);
+  b = (x_2 * y_1 - x_1 * y_2) / (x_2 - x_1);
 }
 
-void solver::get_values( uint32_t k,
-                         uint32_t N,
-                         bool minmod_flag,
-                         const std::vector<gas_parameters> &gas,
-                         double left,
-                         double diaph,
-                         double right,
-                         uint32_t i_contact,
-                         double &r,
-                         double &u,
-                         double &p, bool left_flow ) {
+void solver::get_values(uint32_t k,
+                        uint32_t N,
+                        bool minmod_flag,
+                        const std::vector<gas_parameters> &gas,
+                        double left,
+                        double diaph,
+                        double right,
+                        uint32_t i_contact,
+                        double &r,
+                        double &u,
+                        double &p, bool left_flow) {
   uint32_t l;
   if (left_flow) {
     l = k - 1;
@@ -90,15 +90,15 @@ void solver::get_values( uint32_t k,
   }
 }
 
-double solver::get_left_values( uint32_t k,
-                                uint32_t N,
-                                uint32_t i_contact,
-                                double y1,
-                                double y2,
-                                double y3,
-                                double left,
-                                double diaph,
-                                double right ) {
+double solver::get_left_values(uint32_t k,
+                               uint32_t N,
+                               uint32_t i_contact,
+                               double y1,
+                               double y2,
+                               double y3,
+                               double left,
+                               double diaph,
+                               double right) {
   double k_1, k_2, b_1, b_2;
   line_equation(k - 2, i_contact, N, left, diaph, right, y1, y2, k_1, b_1);
   line_equation(k - 1, i_contact, N, left, diaph, right, y2, y3, k_2, b_2);
@@ -119,15 +119,15 @@ double solver::get_left_values( uint32_t k,
   return y;
 }
 
-double solver::get_right_values( uint32_t k,
-                                 uint32_t N,
-                                 uint32_t i_contact,
-                                 double y1,
-                                 double y2,
-                                 double y3,
-                                 double left,
-                                 double diaph,
-                                 double right ) {
+double solver::get_right_values(uint32_t k,
+                                uint32_t N,
+                                uint32_t i_contact,
+                                double y1,
+                                double y2,
+                                double y3,
+                                double left,
+                                double diaph,
+                                double right) {
   double k_1, k_2, b_1, b_2;
   line_equation(k - 1, i_contact, N, left, diaph, right, y1, y2, k_1, b_1);
   line_equation(k, i_contact, N, left, diaph, right, y2, y3, k_2, b_2);
@@ -148,14 +148,14 @@ double solver::get_right_values( uint32_t k,
   return y;
 }
 
-double solver::compute_dt( const std::vector<gas_parameters> &gas,
-                           const uint32_t N,
-                           const uint32_t i_c,
-                           double left_dx,
-                           double right_dx ) {
-  double        dx;
-  double        dt = 1e6;
-  for (uint32_t i  = 0; i < N - 1; ++i) {
+double solver::compute_dt(const std::vector<gas_parameters> &gas,
+                          const uint32_t N,
+                          const uint32_t i_c,
+                          double left_dx,
+                          double right_dx) {
+  double dx;
+  double dt = 1e6;
+  for (uint32_t i = 0; i < N - 1; ++i) {
     if (i < i_c) {
       dx = left_dx;
     } else {
@@ -171,48 +171,48 @@ double solver::compute_dt( const std::vector<gas_parameters> &gas,
   return dt;
 }
 
-std::string solver::solve_system( double x_0,
-                                  double x_n,
-                                  double x_c,
-                                  double t,
-                                  uint32_t N,
-                                  double r_l,
-                                  double u_l,
-                                  double p_l,
-                                  double r_r,
-                                  double u_r,
-                                  double p_r,
-                                  double _amplitude,
-                                  double _omega,
-                                  const std::function<double( double x_0,
-                                                              double left_0,
-                                                              double amplitude,
-                                                              double omega,
-                                                              double time )> &left_piston_func,
-                                  const std::function<double( double x_0,
-                                                              double left_0,
-                                                              double amplitude,
-                                                              double omega,
-                                                              double time )> &right_piston_func,
-                                  boundaries left_boundary,
-                                  boundaries right_boundary,
-                                  bool hllc_flag ) {
+std::string solver::solve_system(double x_0,
+                                 double x_n,
+                                 double x_c,
+                                 double t,
+                                 uint32_t N,
+                                 double r_l,
+                                 double u_l,
+                                 double p_l,
+                                 double r_r,
+                                 double u_r,
+                                 double p_r,
+                                 double _amplitude,
+                                 double _omega,
+                                 const std::function<double(double x_0,
+                                                            double left_0,
+                                                            double amplitude,
+                                                            double omega,
+                                                            double time)> &left_piston_func,
+                                 const std::function<double(double x_0,
+                                                            double left_0,
+                                                            double amplitude,
+                                                            double omega,
+                                                            double time)> &right_piston_func,
+                                 boundaries left_boundary,
+                                 boundaries right_boundary,
+                                 bool hllc_flag) {
 
   std::vector<gas_parameters> gas_0(N);
   std::vector<gas_parameters> gas_1(N);
 
-  double time    = t;
-  double left_0  = x_0;
+  double time = t;
+  double left_0 = x_0;
   double right_0 = x_n;
   double diaph_0;
 
   double n_cells = N;
-  bool   contact = true;
+  bool contact = true;
 
   uint32_t i_contact;
-  double   s_left;
-  double   s_right;
-  double   s_contact;
+  double s_left;
+  double s_right;
+  double s_contact;
 
   double diaph_1;
   double left_1;
@@ -241,10 +241,10 @@ std::string solver::solve_system( double x_0,
   i_contact = 0;
 
   amplitude = _amplitude;
-  omega     = _omega;
+  omega = _omega;
 
   for (uint32_t i = 0; i < N; ++i) {
-    double dx   = (right_0 - left_0) / n_cells;
+    double dx = (right_0 - left_0) / n_cells;
     double xpos = left_0 + i * dx + 0.5 * dx;
     if (xpos <= diaph_0) {
       gas_0[i].r = r_l;
@@ -253,7 +253,7 @@ std::string solver::solve_system( double x_0,
     } else {
       if (contact) {
         i_contact = i;
-        contact   = false;
+        contact = false;
       }
       gas_0[i].r = r_r;
       gas_0[i].u = u_r;
@@ -264,20 +264,20 @@ std::string solver::solve_system( double x_0,
   n = i_contact;
   m = N - i_contact;
 
-  dx_left_0  = (diaph_0 - left_0) / n;
+  dx_left_0 = (diaph_0 - left_0) / n;
   dx_right_0 = (right_0 - diaph_0) / m;
 
-  Energy_0       = total_energy(gas_0, i_contact, dx_left_0, dx_right_0);
-  Energy_1       = Energy_0;
-  delta_Energy   = Energy_1 - Energy_0;
-  A_left_piston  = 0;
+  Energy_0 = total_energy(gas_0, i_contact, dx_left_0, dx_right_0);
+  Energy_1 = Energy_0;
+  delta_Energy = Energy_1 - Energy_0;
+  A_left_piston = 0;
   A_right_piston = 0;
 
-  kinetic_energy  = total_kinetic_energy(gas_0);
+  kinetic_energy = total_kinetic_energy(gas_0);
   internal_energy = total_internal_energy(gas_0);
 
-  std::string   dir      = mk_dir(N, time, amplitude, omega, r_r, x_c);
-  std::string   data_dir = dir + "/data/";
+  std::string dir = mk_dir(N, time, amplitude, omega, r_r, x_c);
+  std::string data_dir = dir + "/data/";
   std::ofstream output_parameters;
   output_parameters.open(data_dir + "piston_r_u_p.txt");
 
@@ -296,8 +296,8 @@ std::string solver::solve_system( double x_0,
   double ctime = 0;
 
   uint32_t step = 0;
-  double   P_1, P_2, P_3, PP_1, PP_2, PP_3;
-  double   s_cell;
+  double P_1, P_2, P_3, PP_1, PP_2, PP_3;
+  double s_cell;
 
   double r_left, u_left, p_left;
   double r_right, u_right, p_right;
@@ -311,14 +311,14 @@ std::string solver::solve_system( double x_0,
   double U_n = 0, P_n, a_n;
 
   uint32_t output_N = 100;
-/*  if (time >= 10) {
+  if (time >= 10) {
     output_N = N * 10;
-  }*/
+  }
   if (N < 1000) {
     output_N = 1;
   }
 
-  double output_time      = 0;
+  double output_time = 0;
   double cell_output_time = 0;
 
   while (ctime < time) {
@@ -372,19 +372,19 @@ std::string solver::solve_system( double x_0,
       P_n = 0;
     }
 
-    s_left    = U_0;
+    s_left = U_0;
     s_contact = find_s_cell(gas_0[i_contact - 1], gas_0[i_contact]);
-    s_right   = U_n;
+    s_right = U_n;
 
-    left_1  = left_0 + s_left * dt_1;
+    left_1 = left_0 + s_left * dt_1;
     diaph_1 = diaph_0 + s_contact * dt_1;
     right_1 = right_0 + s_right * dt_1;
 
-    dx_left_1  = (diaph_1 - left_1) / i_contact;
-    dx_right_1 = (right_1 - diaph_1) /(N - i_contact);
+    dx_left_1 = (diaph_1 - left_1) / i_contact;
+    dx_right_1 = (right_1 - diaph_1) / (N - i_contact);
 
     for (uint32_t i = 0; i < N; ++i) {
-      P_1  = P_2  = P_3  = 0.0;
+      P_1 = P_2 = P_3 = 0.0;
       PP_1 = PP_2 = PP_3 = 0.0;
 
       if (i < i_contact) {
@@ -496,9 +496,9 @@ std::string solver::solve_system( double x_0,
       PP_3 -= P_3;
 
       gas_1[i].r = gas_0[i].r * dx_1 / dx_2 - dt_1 * PP_1 / dx_2;
-      gas_1[i].u = (gas_0[i].r * gas_0[i].u  * dx_1 / dx_2 - dt_1 * PP_2 / dx_2) / gas_1[i].r;
-      gas_1[i].p = ((-dt_1 * PP_3 / dx_2 +
-          (gas_0[i].p / (GAMMA - 1.0) + 0.5 * gas_0[i].r * gas_0[i].u * gas_0[i].u) * dx_1 / dx_2) -
+      gas_1[i].u = (gas_0[i].r * gas_0[i].u * dx_1 / dx_2 - dt_1 * PP_2 / dx_2) / gas_1[i].r;
+      gas_1[i].p = ((-dt_1 * PP_3 / dx_2
+          + (gas_0[i].p / (GAMMA - 1.0) + 0.5 * gas_0[i].r * gas_0[i].u * gas_0[i].u) * dx_1 / dx_2) -
           0.5 * gas_1[i].r * gas_1[i].u * gas_1[i].u) * (GAMMA - 1.0);
     }
 
@@ -508,27 +508,27 @@ std::string solver::solve_system( double x_0,
       gas_0[i].p = gas_1[i].p;
     }
 
-    Energy_1        = total_energy(gas_0, i_contact, dx_left_1, dx_right_1);
-    kinetic_energy  = total_kinetic_energy(gas_0);
+    Energy_1 = total_energy(gas_0, i_contact, dx_left_1, dx_right_1);
+    kinetic_energy = total_kinetic_energy(gas_0);
     internal_energy = total_internal_energy(gas_0);
 
     if (ctime > 0 && left_boundary == boundaries::piston && right_boundary == boundaries::piston) {
-      delta_Energy   = (Energy_1 - Energy_0) / dt_1;
-      A_left_piston  = P_0 * U_0;
+      delta_Energy = (Energy_1 - Energy_0) / dt_1;
+      A_left_piston = P_0 * U_0;
       A_right_piston = P_n * U_n;
       A_both_pistons = A_left_piston - A_right_piston;
       assert(fabs(delta_Energy - A_both_pistons) < 1e-6);
     }
 
-    diaph_0    = diaph_1;
-    left_0     = left_1;
-    right_0    = right_1;
-    dx_left_0  = dx_left_1;
+    diaph_0 = diaph_1;
+    left_0 = left_1;
+    right_0 = right_1;
+    dx_left_0 = dx_left_1;
     dx_right_0 = dx_right_1;
-    Energy_0   = Energy_1;
+    Energy_0 = Energy_1;
 
     ctime += dt_1;
-    std::cout << ctime << std::endl;
+//    std::cout << ctime << std::endl;
 
     step++;
   }
@@ -544,19 +544,19 @@ std::string solver::solve_system( double x_0,
   return dir;
 }
 
-double solver::find_s_cell( const gas_parameters left, const gas_parameters right ) {
+double solver::find_s_cell(const gas_parameters left, const gas_parameters right) {
   double p_c;
   double u_c;
   starpu(p_c, u_c, left.r, left.u, left.p, right.r, right.u, right.p);
   return u_c;
 }
 
-double solver::find_x( uint32_t j,
-                       const double left,
-                       const double diaph,
-                       const double right,
-                       uint32_t N,
-                       uint32_t i_contact ) {
+double solver::find_x(uint32_t j,
+                      const double left,
+                      const double diaph,
+                      const double right,
+                      uint32_t N,
+                      uint32_t i_contact) {
   if (j < i_contact) {
     return left + double(j) / i_contact * (diaph - left);
   } else {
@@ -564,16 +564,16 @@ double solver::find_x( uint32_t j,
   }
 }
 
-void solver::output_parameters_to_file( std::ostream &out,
-                                        const std::vector<gas_parameters> &gas,
-                                        double time,
-                                        double left,
-                                        double diaph,
-                                        double right,
-                                        uint32_t i_contact,
-                                        uint32_t N ) {
+void solver::output_parameters_to_file(std::ostream &out,
+                                       const std::vector<gas_parameters> &gas,
+                                       double time,
+                                       double left,
+                                       double diaph,
+                                       double right,
+                                       uint32_t i_contact,
+                                       uint32_t N) {
   out << std::scientific;
-  double        xpos;
+  double xpos;
   for (uint32_t i = 0; i < N; ++i) {
     if (i < i_contact) {
       xpos = left + double(i) / i_contact * (diaph - left);
@@ -585,34 +585,34 @@ void solver::output_parameters_to_file( std::ostream &out,
   }
 }
 
-void solver::output_cell_params_to_file( std::ostream &out,
-                                         const std::vector<gas_parameters> &gas,
-                                         double time,
-                                         double left,
-                                         double diaph,
-                                         double right,
-                                         uint32_t i_contact,
-                                         uint32_t N ) {
+void solver::output_cell_params_to_file(std::ostream &out,
+                                        const std::vector<gas_parameters> &gas,
+                                        double time,
+                                        double left,
+                                        double diaph,
+                                        double right,
+                                        uint32_t i_contact,
+                                        uint32_t N) {
   out << std::scientific;
   out << time << "\t" << gas[i_contact] << std::endl;
 }
 
-void solver::trajectory_to_file( std::ostream &out,
-                                 double time,
-                                 double left,
-                                 double diaph,
-                                 double right ) {
+void solver::trajectory_to_file(std::ostream &out,
+                                double time,
+                                double left,
+                                double diaph,
+                                double right) {
   out << std::scientific;
   out << time << "\t" << left << "\t" << diaph << "\t" << right << std::endl;
 }
 
-double solver::total_energy( const std::vector<gas_parameters> &gas,
-                             uint32_t i_contact,
-                             double dx_left,
-                             double dx_right ) {
-  double        dx;
-  double        energy = 0;
-  for (uint32_t i      = 0; i < gas.size(); ++i) {
+double solver::total_energy(const std::vector<gas_parameters> &gas,
+                            uint32_t i_contact,
+                            double dx_left,
+                            double dx_right) {
+  double dx;
+  double energy = 0;
+  for (uint32_t i = 0; i < gas.size(); ++i) {
     if (i < i_contact) {
       dx = dx_left;
     } else {
@@ -623,16 +623,16 @@ double solver::total_energy( const std::vector<gas_parameters> &gas,
   return energy;
 }
 
-double solver::total_kinetic_energy( const std::vector<gas_parameters> &gas ) {
-  double          kinetic_energy = 0;
+double solver::total_kinetic_energy(const std::vector<gas_parameters> &gas) {
+  double kinetic_energy = 0;
   for (const auto &gas_i : gas) {
     kinetic_energy += gas_i.get_kinetic_energy();
   }
   return kinetic_energy;
 }
 
-double solver::total_internal_energy( const std::vector<gas_parameters> &gas ) {
-  double          internal_energy = 0;
+double solver::total_internal_energy(const std::vector<gas_parameters> &gas) {
+  double internal_energy = 0;
   for (const auto &gas_i : gas) {
     internal_energy += gas_i.get_internal_energy();
   }

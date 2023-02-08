@@ -25,7 +25,7 @@ for ax in ax_values.keys():
     frate = 1. / 96
     ax.plot(trajectories_data["t"], trajectories_data[ax_values[ax]], color=ax_colors[ax])
     ax.set_title(ax_names[ax], fontsize=20)
-    ax.set_xlabel('x', fontsize=16)
+    ax.set_xlabel('t', fontsize=16)
     ax.set_ylabel('Amplitude', fontsize=16)
     for label in (ax.get_xticklabels() + ax.get_yticklabels()):
         label.set_fontsize(16)
