@@ -44,6 +44,28 @@ public:
                                    boundaries right_boundary,
                                    bool hllc_flag );
 
+  static std::string solve_system_boundaries( double x_0,
+                                              double x_n,
+                                              double time,
+                                              uint32_t N,
+                                              double r_,
+                                              double u_,
+                                              double p_,
+                                              double _amplitude,
+                                              double _omega,
+                                              const std::function<double( double,
+                                                                   double,
+                                                                   double,
+                                                                   double,
+                                                                   double )> &left_piston_func,
+                                              const std::function<double( double,
+                                                                   double,
+                                                                   double,
+                                                                   double,
+                                                                   double )> &right_piston_func,
+                                              boundaries left_boundary,
+                                              boundaries right_boundary,
+                                              bool hllc_flag );
 private:
 
   static double find_s_cell( gas_parameters left, gas_parameters right );
@@ -76,18 +98,6 @@ private:
                                   double diaph,
                                   double right );
 
-  static void get_values( uint32_t k,
-                          uint32_t N,
-                          bool minmod_flag,
-                          const std::vector<gas_parameters> &gas,
-                          double left,
-                          double diaph,
-                          double right,
-                          uint32_t i_contact,
-                          double &r,
-                          double &u,
-                          double &p, bool left_flow );
-
   static double total_energy( const std::vector<gas_parameters> &gas,
                               uint32_t i_contact,
                               double dx_left,
@@ -102,43 +112,9 @@ private:
                                           double right,
                                           uint32_t i_contact,
                                           uint32_t N );
-  static void line_equation( uint32_t j,
-                             uint32_t i_contact,
-                             uint32_t N,
-                             double left,
-                             double diaph,
-                             double right,
-                             double y_1,
-                             double y_2,
-                             double &k,
-                             double &b );
-  double minmod_one_parameter( uint32_t k,
-                               uint32_t N,
-                               double left,
-                               double diaph,
-                               double right,
-                               uint32_t i_contact,
-                               double y_1,
-                               double y_2,
-                               double y_3 );
-  static double get_left_values( uint32_t k,
-                                 uint32_t N,
-                                 uint32_t i_contact,
-                                 double y1,
-                                 double y2,
-                                 double y3,
-                                 double left,
-                                 double diaph,
-                                 double right );
-  static double get_right_values( uint32_t k,
-                                  uint32_t N,
-                                  uint32_t i_contact,
-                                  double y1,
-                                  double y2,
-                                  double y3,
-                                  double left,
-                                  double diaph,
-                                  double right );
+  static double total_energy( const std::vector<gas_parameters> &gas, double dx );
+  static void trajectory_to_file( std::ostream &out, double time, double left, double right );
+  static double compute_dt( const std::vector<gas_parameters> &gas, uint32_t N, double dx );
 };
 
 #endif //GODUNOV_SOLVER_GODUNOV_SOLVER_HPP
