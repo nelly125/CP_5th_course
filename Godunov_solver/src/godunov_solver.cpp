@@ -968,37 +968,33 @@ std::string solver::solve_system_boundaries(double x_0,
             P_1 = 0;
             P_2 = P_n;
             P_3 = P_n * U_n;
-            B[N] = flows(P_1, P_2, P_3);
         } else if (right_boundary == boundaries::soft) {
             P_1 = 0;
             P_2 = gas_0[N - 1].p;
             P_3 = gas_0[N - 1].p * gas_0[N - 1].u;
-            B[N] = flows(P_1, P_2, P_3);
         } else if (right_boundary == boundaries::hard_wall) {
             P_1 = 0;
             P_2 = 0;
             P_3 = 0;
-            B[N] = flows(P_1, P_2, P_3);
-
         }
+        B[N] = flows(P_1, P_2, P_3);
+
 
         if (left_boundary == boundaries::piston) {
             P_1 = 0;
             P_2 = P_0;
             P_3 = P_0 * U_0;
-            B[0] = flows(P_1, P_2, P_3);
         } else if (left_boundary == boundaries::soft) {
             P_1 = 0;
             P_2 = gas_0[0].p;
             P_3 = gas_0[0].p * gas_0[0].u;
-            B[0] = flows(P_1, P_2, P_3);
         } else if (left_boundary == boundaries::hard_wall) {
             P_1 = 0;
             P_2 = 0;
             P_3 = 0;
-            B[0] = flows(P_1, P_2, P_3);
-
         }
+        B[0] = flows(P_1, P_2, P_3);
+
 
         for (uint32_t i = 1; i < N; ++i) {
             if (i == 1) {
@@ -1081,7 +1077,6 @@ std::string solver::solve_system_boundaries(double x_0,
         u_0 = u_1;
 
         ctime += dt_1;
-        std::cout << ctime << std::endl;
 
         step++;
     }
