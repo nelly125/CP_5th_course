@@ -282,12 +282,12 @@ std::string solver::solve_system( double x_0,
   double output_time      = 0;
   double cell_output_time = 0;
 
-  std::vector<double>    s_i(N + 1);
-  std::vector<double>    x_i_0(N);
-  std::vector<double>    dx_i_0(N);
-  std::vector<double>    x_i_1(N);
-  std::vector<double>    dx_i_1(N);
-  std::vector<cell_flux> B(N + 1);
+  std::vector<double> s_i(N + 1);
+  std::vector<double> x_i_0(N);
+  std::vector<double> dx_i_0(N);
+  std::vector<double> x_i_1(N);
+  std::vector<double> dx_i_1(N);
+  std::vector<flows>  B(N + 1);
 
   bool is_contact = false;
 
@@ -393,7 +393,7 @@ std::string solver::solve_system( double x_0,
         P_1 = 0;
         P_2 = P_n;
         P_3 = P_n * U_n;
-        B[N] = cell_flux(P_1, P_2, P_3);
+        B[N] = flows(P_1, P_2, P_3);
       } else if (right_boundary == boundaries::soft && i == N - 1) {
         P_1 = 0;
         P_2 = gas_0[N - 1].p;
@@ -485,7 +485,7 @@ std::string solver::solve_system( double x_0,
         }
       }
 
-      B[i] = cell_flux(P_1, P_2, P_3);
+      B[i] = flows(P_1, P_2, P_3);
 
       PP_1 -= P_1;
       PP_2 -= P_2;
@@ -736,6 +736,15 @@ std::string solver::solve_system_boundaries( double x_0,
   amplitude = _amplitude;
   omega     = _omega;
 
+  std::vector<double>     s_i(N + 1);
+  std::vector<double>     x_i_0(N + 1);
+  std::vector<double>     dx_i_0(N);
+  std::vector<double>     x_i_1(N + 1);
+  std::vector<double>     dx_i_1(N);
+  std::vector<flows>      B(N + 1);
+  std::vector<cons_flows> u_0(N);
+  std::vector<cons_flows> u_1(N);
+
   for (uint32_t i = 0; i < N; ++i) {
     double dx   = (right_0 - left_0) / n_cells;
     double xpos = left_0 + i * dx + 0.5 * dx;
@@ -743,6 +752,7 @@ std::string solver::solve_system_boundaries( double x_0,
     gas_0[i].u = u_;
     gas_0[i].p = p_;
 
+    u_0[i] = gas_to_cons_flow(gas_0[i]);
   }
 
   dx_0 = (right_0 - left_0) / N;
@@ -799,13 +809,6 @@ std::string solver::solve_system_boundaries( double x_0,
 
   double output_time      = 0;
   double cell_output_time = 0;
-
-  std::vector<double>    s_i(N + 1);
-  std::vector<double>    x_i_0(N);
-  std::vector<double>    dx_i_0(N);
-  std::vector<double>    x_i_1(N);
-  std::vector<double>    dx_i_1(N);
-  std::vector<cell_flux> B(N + 1);
 
   bool is_contact = false;
 
@@ -866,9 +869,12 @@ std::string solver::solve_system_boundaries( double x_0,
 
     dx_1 = (right_1 - left_1) / N;
 
-    for (uint32_t i = 0; i < N; ++i) {
-      x_i_0[i]  = left_0 + i * dx_0;
-      x_i_1[i]  = left_1 + i * dx_1;
+    for (uint32_t i = 0; i < N + 1; ++i) {
+      x_i_0[i] = left_0 + i * dx_0;
+      x_i_1[i] = left_1 + i * dx_1;
+      if (i == N) {
+        continue;
+      }
       dx_i_0[i] = dx_0;
       dx_i_1[i] = dx_1; //TODO unused
     }
@@ -897,7 +903,7 @@ std::string solver::solve_system_boundaries( double x_0,
         P_1 = 0;
         P_2 = P_n;
         P_3 = P_n * U_n;
-        B[N] = cell_flux(P_1, P_2, P_3);
+        B[N] = flows(P_1, P_2, P_3);
       } else if (right_boundary == boundaries::soft && i == N - 1) {
         P_1 = 0;
         P_2 = gas_0[N - 1].p;
@@ -915,16 +921,16 @@ std::string solver::solve_system_boundaries( double x_0,
 
         s_cell = s_i[i + 1];
 
-        r_left = gas_0[i].r;
+/*        r_left = gas_0[i].r;
         u_left = gas_0[i].u;
         p_left = gas_0[i].p;
 
         r_right = gas_0[i + 1].r;
         u_right = gas_0[i + 1].u;
-        p_right = gas_0[i + 1].p;
+        p_right = gas_0[i + 1].p;*/
 
-/*        gas_parameters_minmod(i, gas_0, dx_i_0, s_i, r_left, u_left, p_left);
-        gas_parameters_minmod(i + 1, gas_0, dx_i_0, s_i, r_right, u_right, p_right);*/
+        gas_parameters_minmod(i, gas_0, dx_i_0, s_i, r_left, u_left, p_left);
+        gas_parameters_minmod(i + 1, gas_0, dx_i_0, s_i, r_right, u_right, p_right);
 
         if (hllc_flag) {
           hllc(r_left, u_left, p_left, r_right, u_right, p_right, dx_1, 1.0, s_cell, P_1, P_2, P_3);
@@ -934,6 +940,8 @@ std::string solver::solve_system_boundaries( double x_0,
                  1.0, dx_1, P_1, P_2, P_3);
         }
       }
+
+      B[i + 1] = flows(P_1, P_2, P_3);
 
       PP_1 = P_1;
       PP_2 = P_2;
@@ -962,16 +970,16 @@ std::string solver::solve_system_boundaries( double x_0,
 
         s_cell = s_i[i];
 
-        r_left = gas_0[i - 1].r;
+/*        r_left = gas_0[i - 1].r;
         u_left = gas_0[i - 1].u;
         p_left = gas_0[i - 1].p;
 
         r_right = gas_0[i].r;
         u_right = gas_0[i].u;
-        p_right = gas_0[i].p;
+        p_right = gas_0[i].p;*/
 
-/*        gas_parameters_minmod(i - 1, gas_0, dx_i_0, s_i, r_left, u_left, p_left);
-        gas_parameters_minmod(i, gas_0, dx_i_0, s_i, r_right, u_right, p_right);*/
+        gas_parameters_minmod(i - 1, gas_0, dx_i_0, s_i, r_left, u_left, p_left);
+        gas_parameters_minmod(i, gas_0, dx_i_0, s_i, r_right, u_right, p_right);
 
         if (hllc_flag) {
           hllc(r_left, u_left, p_left, r_right, u_right, p_right, dx_1, 1.0, s_cell, P_1, P_2, P_3);
@@ -982,18 +990,48 @@ std::string solver::solve_system_boundaries( double x_0,
         }
       }
 
-      B[i] = cell_flux(P_1, P_2, P_3);
+      B[i] = flows(P_1, P_2, P_3);
 
       PP_1 -= P_1;
       PP_2 -= P_2;
       PP_3 -= P_3;
 
-      gas_1[i].r = gas_0[i].r * dx_0 / dx_1 - dt_1 * PP_1 / dx_1;
+      double tmpPP_1 = B[i + 1].M - B[i].M;
+      assert(fabs(tmpPP_1 - PP_1) < 1e-6);
+      double tmpPP_2 = B[i + 1].J - B[i].J;
+      assert(fabs(tmpPP_2 - PP_2) < 1e-6);
+      double tmpPP_3 = B[i + 1].E - B[i].E;
+      assert(fabs(tmpPP_3 - PP_3) < 1e-6);
+
+/*      gas_1[i].r = gas_0[i].r * dx_0 / dx_1 - dt_1 * PP_1 / dx_1;
       gas_1[i].u = (gas_0[i].r * gas_0[i].u * dx_0 / dx_1 - dt_1 * PP_2 / dx_1) / gas_1[i].r;
       gas_1[i].p = ((-dt_1 * PP_3 / dx_1
           + (gas_0[i].p / (GAMMA - 1.0) + 0.5 * gas_0[i].r * gas_0[i].u * gas_0[i].u) * dx_0 / dx_1) -
           0.5 * gas_1[i].r * gas_1[i].u * gas_1[i].u) * (GAMMA - 1.0);
+
+      auto u = gas_to_cons_flow(gas_1[i]);
+
+//      double temp = (x_i_0[i + 1] - x_i_0[i]) / (x_i_1[i + 1] - x_i_1[i]);
+      double temp = dx_0 / dx_1;
+      u_1[i].m = (u_0[i].m * temp) - ((dt_1 * (B[i + 1].M - B[i].M))) / (dx_1);
+      u_1[i].j = (u_0[i].j * temp) - ((dt_1 * (B[i + 1].J - B[i].J))) / (dx_1);
+      u_1[i].e = (u_0[i].e * temp) - ((dt_1 * (B[i + 1].E - B[i].E))) / (dx_1);
+
+      auto gas = c_flow_to_gas(u_1[i]);
+
+      assert(fabs(gas.r - gas_1[i].r) < 1e-6);
+      assert(fabs(gas.u - gas_1[i].u) < 1e-6);
+      assert(fabs(gas.p - gas_1[i].p) < 1e-6);*/
     }
+    for (uint32_t i = 0; i < N; ++i) {
+      double temp = dx_0 / dx_1;
+      u_1[i].m = (u_0[i].m * temp) - ((dt_1 * (B[i + 1].M - B[i].M))) / (dx_1);
+      u_1[i].j = (u_0[i].j * temp) - ((dt_1 * (B[i + 1].J - B[i].J))) / (dx_1);
+      u_1[i].e = (u_0[i].e * temp) - ((dt_1 * (B[i + 1].E - B[i].E))) / (dx_1);
+
+      gas_1[i] = c_flow_to_gas(u_1[i]);
+    }
+
 
     //TODO
     if (right_boundary == boundaries::soft) {
@@ -1025,6 +1063,7 @@ std::string solver::solve_system_boundaries( double x_0,
     right_0  = right_1;
     dx_0     = dx_1;
     Energy_0 = Energy_1;
+    u_0      = u_1;
 
     ctime += dt_1;
     std::cout << ctime << std::endl;
