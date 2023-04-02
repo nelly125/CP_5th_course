@@ -140,7 +140,7 @@ int main() {
   simple_test(0.3,
               (1 * M_PI)/ 0.1,
               0.3,
-              0.5,
+              0.3,
               1000,
               P_constant,
               P_function_one_wave,
