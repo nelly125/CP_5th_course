@@ -140,12 +140,12 @@ int main() {
   simple_test(0.3,
               (1 * M_PI)/ 0.1,
               0.3,
-              0.5,
+              0.2,
               1000,
               P_constant,
-              P_function_one_wave,
+              P_constant,
               boundaries::piston,
-              boundaries::soft);
+              boundaries::piston);
 
   return 0;
 

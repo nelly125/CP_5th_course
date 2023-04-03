@@ -15,7 +15,7 @@ double P_function( double x_0, double left_0, double amplitude, double omega, do
 }
 
 double P_constant( double x_0, double left_0, double amplitude, double omega, double time ) {
-  return 5;
+  return 1.2;
 }
 
 double P_function_one_wave( double x_0, double left_0, double amplitude, double omega, double time ) {
