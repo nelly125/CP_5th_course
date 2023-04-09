@@ -69,21 +69,21 @@ void simple_test( double amplitude,
   double x_0 = 0;
   double x_n = 1;
 
-/*  double x_c = x_0 + l;
+  double x_c = x_0 + l;
   double r_l = 1;
   double u_l = 0;
-  double p_l = 1/ GAMMA;
+  double p_l = 1;
   double r_r = r_l;
   double u_r = u_l;
-  double p_r = p_l;*/
+  double p_r = p_l;
 
-  double x_c = 0.3;
+/*  double x_c = 0.3;
   double r_l = 1;
   double u_l = 0;
   double p_l = 1;
   double r_r = 1;
   double u_r = 0;
-  double p_r = 1;
+  double p_r = 1;*/
 
 /*  double x_c = 0.5;
   double r_l = 1;
@@ -115,7 +115,7 @@ void simple_test( double amplitude,
   dir_name   = solver::solve_system_boundaries(x_0, x_n, time, N,
                                     r_l, u_l, p_l,
                                     amplitude, omega, P_l_func, P_r_func,
-                                    left_boundary, right_boundary, false);
+                                    left_boundary, right_boundary, true);
 
   time_log << dir_name << ": \t" << (clock() - start_time) / CLOCKS_PER_SEC << std::endl;
 
@@ -137,10 +137,11 @@ int main() {
                    boundaries::piston);
 */
 
-  simple_test(0.3,
-              (1 * M_PI)/ 0.1,
+  simple_test(0.2,
+//              2 * M_PI * 50,
+              2 * M_PI*5,
               0.3,
-              0.2,
+              0.6,
               1000,
               P_constant,
               P_constant,

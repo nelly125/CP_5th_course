@@ -17,8 +17,10 @@ data["log_r"] = np.log(data["r"])
 GAMMA = 5. / 3
 data['x'] = data.index
 
+
 def data_step(i):
     return data.iloc[i * n_cells: (i + 1) * n_cells]
+
 
 n_steps = int(len(data) / n_cells)
 

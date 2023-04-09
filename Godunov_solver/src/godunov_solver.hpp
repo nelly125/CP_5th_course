@@ -115,6 +115,8 @@ private:
   static double total_energy( const std::vector<gas_parameters> &gas, double dx );
   static void trajectory_to_file( std::ostream &out, double time, double left, double right );
   static double compute_dt( const std::vector<gas_parameters> &gas, uint32_t N, double dx );
+  static double total_momentum( const std::vector<gas_parameters> &gas, double dx );
+  static double total_mass( const std::vector<gas_parameters> &gas, double dx );
 };
 
 #endif //GODUNOV_SOLVER_GODUNOV_SOLVER_HPP

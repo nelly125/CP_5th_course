@@ -11,11 +11,11 @@ double P_function_norm( double x_0, double left_0, double amplitude, double omeg
 
 
 double P_function( double x_0, double left_0, double amplitude, double omega, double time ) {
-  return (1 + amplitude * sin(omega * (time)));
+  return (1/GAMMA + amplitude * sin(omega * (time)));
 }
 
 double P_constant( double x_0, double left_0, double amplitude, double omega, double time ) {
-  return 1.2;
+  return 1.5;
 }
 
 double P_function_one_wave( double x_0, double left_0, double amplitude, double omega, double time ) {
