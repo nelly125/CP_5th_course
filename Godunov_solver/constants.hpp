@@ -4,7 +4,7 @@
 #define GAMMA (5.0/3.0)
 #define EPS		1.0e-10
 #define MAX_ITER	20
-#define CFL		0.3
+#define CFL		0.1
 
 const double
         g1 = (GAMMA - 1.0)/(2.0*GAMMA),

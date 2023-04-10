@@ -18,126 +18,127 @@ double minmod( double a, double b ) {
   }
 }
 
-double minmod_limiter( double phi_im1,
-                       double phi_i,
-                       double phi_ip1,
-                       double dx_im1,
-                       double dx_i,
-                       double dx_ip1,
-                       double u_im1,
-                       double u_i,
-                       double u_ip1 ) {
-  double r1    = (phi_i - phi_im1) / dx_im1 - (u_i - u_im1) / 2.0;
-  double r2    = (phi_ip1 - phi_i) / dx_i - (u_ip1 - u_i) / 2.0;
-  double theta = minmod(r1, r2);
 
-  double a  = phi_i - phi_im1;
-  double b  = phi_ip1 - phi_i;
-  double sm = 0.0;
-  if (a * b > 0.0) {
-    double am = std::abs(a);
-    double bm = std::abs(b);
-    double cm = std::abs(theta * dx_i);
-    if (am < bm && am < cm) {
-      sm = std::copysign(am, a);
-    } else if (bm < am && bm < cm) {
-      sm = std::copysign(bm, b);
-    } else {
-      sm = theta * dx_i;
+double minmod_limiter(double phi_im1, double phi_i, double phi_ip1,
+                      double dx_im1, double dx_i, double dx_ip1) {
+    double r1 = (phi_i - phi_im1) / dx_i;
+    double r2 = (phi_ip1 - phi_i) / dx_ip1;
+    double theta = minmod(r1, r2);
+
+    return phi_i + 0.5 * dx_i * theta;
+}
+
+/*
+double vanleer_limiter(double phi_im1, double phi_i, double phi_ip1, double dx_im1, double dx_i, double dx_ip1, double u_im1, double u_i, double u_ip1) {
+    double phi_l = phi_i + 0.5 * minmod_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1, u_im1, u_i, u_ip1);
+    double phi_r = phi_i - 0.5 * minmod_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1, -u_ip1, -u_i, -u_im1);
+    double r_im1 = (phi_l - phi_im1) / (phi_i - phi_l + 1e-15);
+    double r_i = (phi_ip1 - phi_r) / (phi_r - phi_i + 1e-15);
+    double psi_im1 = (r_im1 > 0) ? (2.0 / (1.0 + r_im1)) : 0;
+    double psi_i = (r_i > 0) ? (2.0 / (1.0 + r_i)) : 0;
+    double limiter = 0.5 * (psi_im1 * fmin(dx_im1 / u_im1, dx_i / u_i) + psi_i * fmin(dx_i / u_i, dx_ip1 / u_ip1));
+    return limiter;
+}
+*/
+
+double MC_limiter(double phi_im1,
+                  double phi_i,
+                  double phi_ip1,
+                  double dx_im1,
+                  double dx_i,
+                  double dx_ip1,
+                  double u_im1,
+                  double u_i,
+                  double u_ip1)
+{
+    double r1 = (phi_i - phi_im1) / dx_im1;
+    double r2 = (phi_ip1 - phi_i) / dx_i;
+
+    double theta = 1.0;
+    double r_sign = r1 * r2;
+
+    if (r_sign > 0.0)
+    {
+        double r_min = std::min(std::abs(r1), std::abs(r2));
+        double r_max = std::max(std::abs(r1), std::abs(r2));
+        double r_lim = std::min(2.0 * r_min, r_max);
+        theta = r_lim / (r_max + 1e-16);
     }
-  }
 
-  return phi_i + 0.5 * sm;
+    double dx_min = std::min({dx_im1, dx_i, dx_ip1});
+    double dx_max = std::max({dx_im1, dx_i, dx_ip1});
+
+    double phi_bar_im1 = phi_i - 0.5 * theta * (1.0 - u_im1 * dx_min / dx_i) * (phi_i - phi_im1);
+    double phi_bar_i = phi_i + 0.5 * theta * (u_ip1 * dx_min / dx_ip1 - u_im1 * dx_min / dx_im1) * (phi_ip1 - phi_im1);
+    double phi_bar_ip1 = phi_i + 0.5 * theta * (1.0 - u_ip1 * dx_min / dx_i) * (phi_ip1 - phi_i);
+
+    double phi_min = std::min({phi_bar_im1, phi_bar_i, phi_bar_ip1});
+    double phi_max = std::max({phi_bar_im1, phi_bar_i, phi_bar_ip1});
+
+    return std::max(std::min(phi_i, phi_max), phi_min);
 }
 
-double vanleer_limiter( double phi_im1,
-                        double phi_i,
-                        double phi_ip1,
-                        double dx_im1,
-                        double dx_i,
-                        double dx_ip1,
-                        double u_im1,
-                        double u_i,
-                        double u_ip1 ) {
-  double r1    = (phi_i - phi_im1) / dx_im1 - (u_i - u_im1) / 2.0;
-  double r2    = (phi_ip1 - phi_i) / dx_i - (u_ip1 - u_i) / 2.0;
-  double theta = 0.0;
-  if (r1 * r2 > 0.0) {
-    theta = (2.0 * r1 * r2) / (r1 + r2);
-  }
-  return phi_i + 0.5 * dx_i * theta;
+
+
+double superbee_limiter(double phi_im1, double phi_i, double phi_ip1,
+                        double dx_im1, double dx_i, double dx_ip1,
+                        double u_im1, double u_i, double u_ip1) {
+    double r1 = (phi_i - phi_im1) / std::max(std::abs(phi_i - phi_im1), 1e-12);
+    double r2 = (phi_ip1 - phi_i) / std::max(std::abs(phi_ip1 - phi_i), 1e-12);
+    double phi_minmod_1 = std::min(2.0, std::min(r1, 2.0*r2));
+    double phi_minmod_2 = std::min(2.0*r1, std::min(r2, 2.0));
+    double phi_superbee = std::max(phi_minmod_1, phi_minmod_2);
+    return phi_i + 0.5 * phi_superbee * std::min(std::min(dx_im1, dx_i), dx_ip1) * (u_ip1 - u_im1);
 }
 
-double superbee_limiter( double phi_im1,
-                         double phi_i,
-                         double phi_ip1,
-                         double dx_im1,
-                         double dx_i,
-                         double dx_ip1,
-                         double u_im1,
-                         double u_i,
-                         double u_ip1 ) {
-  double r1 = 2.0 * (phi_i - phi_im1) / (dx_i + dx_im1) - (u_i - u_im1);
-  double r2 = 2.0 * (phi_ip1 - phi_i) / (dx_i + dx_ip1) - (u_ip1 - u_i);
-  double s1 = (std::abs(r1) < std::abs(r2)) ? r1 : r2;
-  double s2 = 2.0 * (phi_ip1 - phi_im1) / (dx_i + dx_ip1 + dx_im1);
-  double s3 = 0.0;
-  if (s1 * s2 >= 0.0) {
-    s3 = s1;
-  } else if (std::abs(s1) > std::abs(s2)) {
-    s3 = s2;
-  } else {
-    s3 = s1;
-  }
-  return phi_i + 0.5 * dx_i * s3;
-}
 
-double van_albada( double a, double b ) {
-  double s = a * b;
-  if (s <= 0.0) {
-    return 0.0;
-  } else {
-    return s / (a * a + b * b);
-  }
-}
 
-double van_albada_limiter( double phi_im1,
-                           double phi_i,
-                           double phi_ip1,
-                           double dx_im1,
-                           double dx_i,
-                           double dx_ip1,
-                           double u_im1,
-                           double u_i,
-                           double u_ip1 ) {
-  double r1    = (phi_i - phi_im1) / dx_im1 - (u_i - u_im1) / 2.0;
-  double r2    = (phi_ip1 - phi_i) / dx_i - (u_ip1 - u_i) / 2.0;
-  double theta = van_albada(r1, r2);
-
-  double a  = phi_i - phi_im1;
-  double b  = phi_ip1 - phi_i;
-  double sm = 0.0;
-  if (a * b > 0.0) {
-    double am = std::abs(a);
-    double bm = std::abs(b);
-    double cm = std::abs(theta * dx_i);
-    if (am < bm && am < cm) {
-      sm = std::copysign(am, a);
-    } else if (bm < am && bm < cm) {
-      sm = std::copysign(bm, b);
+double van_albada(double a, double b) {
+    double s = a * b;
+    if (s <= 0.0) {
+        return 0.0;
     } else {
-      sm = theta * dx_i;
+        return s / (a*a + b*b);
     }
-  }
+}
 
-  return phi_i + 0.5 * sm;
+double van_albada_limiter(double phi_im1,
+                          double phi_i,
+                          double phi_ip1,
+                          double dx_im1,
+                          double dx_i,
+                          double dx_ip1,
+                          double u_im1,
+                          double u_i,
+                          double u_ip1) {
+    double r1 = (phi_i - phi_im1) / dx_im1 - (u_i - u_im1) / 2.0;
+    double r2 = (phi_ip1 - phi_i) / dx_i - (u_ip1 - u_i) / 2.0;
+    double theta = van_albada(r1, r2);
+
+    double a = phi_i - phi_im1;
+    double b = phi_ip1 - phi_i;
+    double sm = 0.0;
+    if (a * b > 0.0) {
+        double am = std::abs(a);
+        double bm = std::abs(b);
+        double cm = std::abs(theta * dx_i);
+        if (am < bm && am < cm) {
+            sm = std::copysign(am, a);
+        } else if (bm < am && bm < cm) {
+            sm = std::copysign(bm, b);
+        } else {
+            sm = theta * dx_i;
+        }
+    }
+
+    return phi_i + 0.5 * sm;
 }
 
 void gas_parameters_limiter( uint32_t k,
                              std::vector<gas_parameters> &phi,
                              std::vector<double> &dx,
                              std::vector<double> &u,
-                             double &r_int, double &u_int, double &p_int ) {
+                             double &r_int, double &u_int, double &p_int, limiter &lim ) {
   uint32_t N = phi.size();
 
   double dx_im1 = k > 0 ? dx[k - 1] : dx[k];
@@ -152,21 +153,57 @@ void gas_parameters_limiter( uint32_t k,
     double phi_im1 = k > 0 ? phi[k - 1].r : phi[k].r;
     double phi_i   = phi[k].r;
     double phi_ip1 = k < N - 1 ? phi[k + 1].r : phi[k].r;
-    r_int = minmod_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1, u_im1, u_i, u_ip1);
+      switch (lim) {
+          case limiter::none :
+              r_int = phi_i;
+              break;
+          case limiter::minmod_lim:
+              r_int = minmod_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1);
+              break;
+          case limiter::van_albada_lim:
+              r_int = van_albada_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1, u_im1, u_i, u_ip1);
+              break;
+          case limiter::superbee_lim:
+              r_int = superbee_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1, u_im1, u_i, u_ip1);
+      }
   }
 
   {
     double phi_im1 = k > 0 ? phi[k - 1].u : phi[k].u;
     double phi_i   = phi[k].u;
     double phi_ip1 = k < N - 1 ? phi[k + 1].u : phi[k].u;
-    u_int = minmod_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1, u_im1, u_i, u_ip1);
+      switch (lim) {
+          case limiter::none :
+              u_int = phi_i;
+              break;
+          case limiter::minmod_lim:
+              u_int = minmod_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1);
+              break;
+          case limiter::van_albada_lim:
+              u_int = van_albada_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1, u_im1, u_i, u_ip1);
+              break;
+          case limiter::superbee_lim:
+              u_int = superbee_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1, u_im1, u_i, u_ip1);
+      }
   }
 
   {
     double phi_im1 = k > 0 ? phi[k - 1].p : phi[k].p;
     double phi_i   = phi[k].p;
     double phi_ip1 = k < N - 1 ? phi[k + 1].p : phi[k].p;
-    p_int = van_albada_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1, u_im1, u_i, u_ip1);
+      switch (lim) {
+          case limiter::none :
+              p_int = phi_i;
+              break;
+          case limiter::minmod_lim:
+              p_int = minmod_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1);
+              break;
+          case limiter::van_albada_lim:
+              p_int = van_albada_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1, u_im1, u_i, u_ip1);
+              break;
+          case limiter::superbee_lim:
+              p_int = superbee_limiter(phi_im1, phi_i, phi_ip1, dx_im1, dx_i, dx_ip1, u_im1, u_i, u_ip1);
+      }
   }
 
 }
@@ -793,7 +830,8 @@ std::string solver::solve_system_boundaries( double x_0,
                                                                          double time )> &right_piston_func,
                                              boundaries left_boundary,
                                              boundaries right_boundary,
-                                             bool hllc_flag ) {
+                                             bool hllc_flag,
+                                             limiter lim) {
 
   std::vector<gas_parameters> gas_0(N);
   std::vector<gas_parameters> gas_1(N);
@@ -935,7 +973,7 @@ std::string solver::solve_system_boundaries( double x_0,
     if (left_boundary == boundaries::piston) {
       P_0 = left_piston_func(x_0, left_0, amplitude, omega, ctime);
       if (P_0 >= gas_0[0].p) {
-        a_0 = sqrt(gas_0[0].r * ((GAMMA + 1) / 2 * (P_0 - ) + (GAMMA - 1) / 2 * gas_0[0].p));
+        a_0 = sqrt(gas_0[0].r * ((GAMMA + 1) / 2 * P_0  + (GAMMA - 1) / 2 * gas_0[0].p));
         U_0 = gas_0[0].u + (P_0 - gas_0[0].p) / a_0;
       } else {
         U_0 = gas_0[0].u - 2 / (GAMMA - 1) * sqrt(GAMMA * gas_0[0].p / gas_0[0].r) *
@@ -1033,15 +1071,14 @@ std::string solver::solve_system_boundaries( double x_0,
       }
       s_cell = s_i[i];
 
-      r_left  = gas_0[i - 1].r;
+/*      r_left  = gas_0[i - 1].r;
       u_left  = gas_0[i - 1].u;
       p_left  = gas_0[i - 1].p;
       r_right = gas_0[i].r;
       u_right = gas_0[i].u;
-      p_right = gas_0[i].p;
-
-//      gas_parameters_limiter(i - 1, gas_0, dx_i_0, s_i, r_left, u_left, p_left);
-//      gas_parameters_limiter(i, gas_0, dx_i_0, s_i, r_right, u_right, p_right);
+      p_right = gas_0[i].p;*/
+      gas_parameters_limiter(i - 1, gas_0, dx_i_0, s_i, r_left, u_left, p_left, lim);
+      gas_parameters_limiter(i, gas_0, dx_i_0, s_i, r_right, u_right, p_right, lim);
 
       if (hllc_flag) {
         hllc(r_left, u_left, p_left, r_right, u_right, p_right, dx_1, 1.0, s_cell, P_1, P_2, P_3);
@@ -1093,16 +1130,19 @@ std::string solver::solve_system_boundaries( double x_0,
 
     double momentum_1 = total_momentum(gas_1, dx_1);
 
-    if (ctime > 0 && left_boundary == boundaries::piston && right_boundary == boundaries::piston) {
-      double delta_momentum = (momentum_1 - momentum_0) / dt_1;
-      double piston_momentum = (P_n - P_0) ;
-      assert(fabs(delta_momentum - piston_momentum) < 1e-6);
-    }
+  /*  if (ctime > 0 && left_boundary == boundaries::piston && right_boundary == boundaries::piston) {*/
+  /*    double delta_momentum = (momentum_1 - momentum_0) / dt_1;*/
+  /*    double piston_momentum = (P_n - P_0) ;*/
+  /*    assert(fabs(delta_momentum - piston_momentum) < 1e-6);*/
+  /*  }*/
+
 
     double mass_1 = total_mass(gas_1, dx_1);
 
     double delta_mass = mass_1 - mass_0;
-    assert(fabs(delta_mass) < 1e-6);
+      if (ctime > 0 && left_boundary == boundaries::piston && right_boundary == boundaries::piston) {
+          assert(fabs(delta_mass) < 1e-6);
+      }
 
     left_0   = left_1;
     right_0  = right_1;

@@ -8,6 +8,8 @@
 
 enum boundaries { piston, soft, hard_wall };
 
+enum limiter {none, minmod_lim, superbee_lim, van_albada_lim};
+
 class solver {
 public:
   solver() = default;
@@ -65,7 +67,8 @@ public:
                                                                    double )> &right_piston_func,
                                               boundaries left_boundary,
                                               boundaries right_boundary,
-                                              bool hllc_flag );
+                                              bool hllc_flag ,
+                                              limiter lim);
 private:
 
   static double find_s_cell( gas_parameters left, gas_parameters right );
