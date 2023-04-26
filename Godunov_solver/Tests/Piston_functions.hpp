@@ -40,4 +40,16 @@ double P_function_one_positive_wave( double x_0, double left_0, double amplitude
   return P_0;
 }
 
+double P_function_1_GAMMA_one_positive_wave( double x_0, double left_0, double amplitude, double omega, double time ) {
+  double P_0;
+  double T = 2 * M_PI / omega;
+  if (time < T / 2) {
+    P_0 = (1/GAMMA + amplitude * sin(omega * (time)));
+  } else {
+    P_0 = 1/GAMMA;
+  }
+  return P_0;
+}
+
+
 #endif //GODUNOV_SOLVER_GODUNOV_SOLVER_TESTS_PISTON_FUNCTIONS_HPP_

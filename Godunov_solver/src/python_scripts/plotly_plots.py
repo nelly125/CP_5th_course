@@ -21,9 +21,6 @@ data['s'] = 1 + c_v * np.log(data['p'] / (data['r'] ** GAMMA))
 data['Mach'] = data['u'] / np.sqrt(GAMMA * data['p'] / data['r'])
 data['Temp'] = data['p'] / (data['r'] * R) / (GAMMA - 1)
 
-print(data['Temp'])
-
-
 def data_step(i):
     return data.iloc[i * n_cells: (i + 1) * n_cells]
 

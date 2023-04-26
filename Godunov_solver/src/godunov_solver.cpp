@@ -936,9 +936,9 @@ std::string solver::solve_system_boundaries( double x_0,
   double U_0 = 0, P_0, a_0;
   double U_n = 0, P_n, a_n;
 
-  uint32_t output_N = 100;
+  uint32_t output_N = 1;
   if (time >= 10) {
-    output_N = int(time) * 10;
+    output_N = int(time) * 100;
   }
   if (N < 1000) {
     output_N = 1;
@@ -996,6 +996,28 @@ std::string solver::solve_system_boundaries( double x_0,
       U_n = 0;
       P_n = 0;
     }
+
+/*
+    U_0 = 0.32302914123489934 - gas_0[0].u;
+    double a_0_sq = GAMMA * gas_0[0].p / gas_0[0].r;
+
+    double D = (GAMMA + 1)  * U_0/ 2 + sqrt((GAMMA + 1) * (GAMMA + 1) * U_0 * U_0/ 4 + 4 * a_0_sq);
+    U_0 = U_0 + gas_0[0].u;
+    D = D + gas_0[0].u;
+
+    double u_right_p = gas_0[0].u - D;
+    double M = (u_right_p * u_right_p) / a_0_sq;
+    P_0 = ((2 * GAMMA * M) / (GAMMA + 1) - (GAMMA - 1) / (GAMMA + 1));
+*/
+
+    U_0 = 0.32302914123489934;
+    double a_0_sq = GAMMA * gas_0[0].p / gas_0[0].r;
+    double D = (GAMMA + 1)  * U_0/ 2 + sqrt((GAMMA + 1) * (GAMMA + 1) * U_0 * U_0/ 4 + a_0_sq);
+    double u_right_p = gas_0[0].u - D;
+    double M = (u_right_p * u_right_p) / a_0_sq;
+    P_0 = ((2 * GAMMA * M) / (GAMMA + 1) - (GAMMA - 1) / (GAMMA + 1));
+
+
 
     s_left  = U_0;
     s_right = U_n;
@@ -1059,12 +1081,14 @@ std::string solver::solve_system_boundaries( double x_0,
       assert(xi_0 >= left_0 || xi_0 <= right_0);
       assert(xi_1 >= left_1 && xi_1 <= right_1);
 
+
+      double x_fourier = 0.26;
       if (write_trajectory) {
-        if (fabs(xi_0) > 0.49 && fabs(xi_0) < 0.51) {
+        if (fabs(xi_0) > (x_fourier-0.1) && fabs(xi_0) < (x_fourier + 0.1)) {
           cell_params << ctime << "\t" << xi_0 << "\t" << gas_0[i].r << "\t" << gas_0[i].u << "\t" << gas_0[i].r
                       << std::endl;
         }
-        if (fabs(xi_0) > 0.51) {
+        if (fabs(xi_0) > x_fourier + 0.1) {
           write_trajectory = false;
         }
 
@@ -1118,30 +1142,30 @@ std::string solver::solve_system_boundaries( double x_0,
     kinetic_energy  = total_kinetic_energy(gas_0);
     internal_energy = total_internal_energy(gas_0);
 
-    std::cout << ctime << std::endl;
+//    std::cout << ctime << std::endl;
 
-    if (ctime > 0 && left_boundary == boundaries::piston && right_boundary == boundaries::piston) {
+    if (left_boundary == boundaries::piston && right_boundary == boundaries::piston) {
       delta_Energy   = (Energy_1 - Energy_0) / dt_1;
       A_left_piston  = P_0 * U_0;
       A_right_piston = P_n * U_n;
       A_both_pistons = A_left_piston - A_right_piston;
-      assert(fabs(delta_Energy - A_both_pistons) < 1e-6);
+      assert(fabs(delta_Energy - A_both_pistons) < EPS_CONV);
     }
 
     double momentum_1 = total_momentum(gas_1, dx_1);
 
-  /*  if (ctime > 0 && left_boundary == boundaries::piston && right_boundary == boundaries::piston) {*/
-  /*    double delta_momentum = (momentum_1 - momentum_0) / dt_1;*/
-  /*    double piston_momentum = (P_n - P_0) ;*/
-  /*    assert(fabs(delta_momentum - piston_momentum) < 1e-6);*/
-  /*  }*/
+    if (left_boundary == boundaries::piston && right_boundary == boundaries::piston) {
+      double delta_momentum = (momentum_1 - momentum_0) / dt_1;
+      double piston_momentum = (P_0 - P_n) ;
+      assert(fabs(delta_momentum - piston_momentum) < EPS_CONV);
+    }
 
 
     double mass_1 = total_mass(gas_1, dx_1);
 
     double delta_mass = mass_1 - mass_0;
-      if (ctime > 0 && left_boundary == boundaries::piston && right_boundary == boundaries::piston) {
-          assert(fabs(delta_mass) < 1e-6);
+      if (left_boundary == boundaries::piston && right_boundary == boundaries::piston) {
+          assert(fabs(delta_mass) < EPS_CONV);
       }
 
     left_0   = left_1;
