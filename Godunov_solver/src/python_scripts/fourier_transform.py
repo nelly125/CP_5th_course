@@ -48,7 +48,7 @@ data['x'] = data.index
 
 n_steps = int(len(data) / n_cells)
 
-point = 2.5
+point = 0.5
 
 p_i= []
 for i in range(n_steps):

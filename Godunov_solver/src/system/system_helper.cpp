@@ -3,10 +3,11 @@
 #include <sys/stat.h>
 #include <iomanip>
 #include "system_helper.hpp"
+#include "../godunov_solver.hpp"
 
 #include <filesystem>
 
-auto mk_dir( uint32_t N, double time, double amplitude, double omega, double sigma, double diaph ) -> std::string {
+auto mk_dir( uint32_t N, double time, double amplitude, double omega, double sigma, double diaph , boundaries &left, boundaries &right) -> std::string {
 
   std::cout << std::filesystem::current_path() << std::endl;
 
@@ -16,7 +17,7 @@ auto mk_dir( uint32_t N, double time, double amplitude, double omega, double sig
   std::ostringstream streamObj3;
   streamObj3 << std::fixed;
   streamObj3 << std::setprecision(2);
-  streamObj3 << time << "__" << amplitude << "__" << omega << "__" << sigma << "__" << diaph;
+  streamObj3 << time << "_" << amplitude << "_" << omega << "_" << sigma << "_" << diaph << "__" << left << "_" << right;
 
   std::string temp_string = std::to_string(N);
   directory += temp_string + "__";

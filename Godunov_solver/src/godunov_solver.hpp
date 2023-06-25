@@ -6,7 +6,7 @@
 #include <functional>
 #include "../gas_parameters.hpp"
 
-enum boundaries { piston, soft, hard_wall };
+enum boundaries { piston_P, piston_U, soft, hard_wall, piston };
 
 enum limiter {none, minmod_lim, superbee_lim, van_albada_lim};
 
