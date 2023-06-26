@@ -139,26 +139,6 @@ double U_0_5_constant(double x_0, double left_0, double amplitude, double omega,
 }
 
 
-void piston_wave() {
-  double x_0 = 0;
-  double x_n = 1;
-  uint32_t N = 1000;
-
-  double r_l = 1;
-  double u_l = 0;
-  double p_l = 1. / GAMMA;
-
-  double amplitude = 0.01;
-  double omega = 2 * M_PI;
-
-  double time = 100;
-
-  auto dir_name = solver::solve_system_boundaries(x_0, x_n, time, N,
-                                                  r_l, u_l, p_l,
-                                                  amplitude, omega, P_wave_function, P_1_GAMMA_constant,
-                                                  boundaries::piston, boundaries::soft, false,
-                                                  limiter::none);
-}
 
 void two_piston_wave() {
   double x_0 = 0;
@@ -338,8 +318,8 @@ int main() {
 //  piston_up_P();
 //  piston_up_U();
 //  left_waves_P();
-  left_waves_U(0.1,  M_PI * 8);
-
+//  left_waves_U(0.03,  M_PI * 2);
+    left_waves_P(0.001,  M_PI * 2, 1000);
 
   return 0;
 

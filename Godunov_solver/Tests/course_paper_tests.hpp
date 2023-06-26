@@ -66,7 +66,7 @@ double U_wave_function(double x_0, double left_0, double amplitude, double omega
   return (amplitude * sin(omega * (time)));
 }
 
-void left_waves_P() {
+void left_waves_P(double amplitude = 0.01, double omega = 2 * M_PI, double time = 200) {
   double x_0 = 0;
   double x_n = 1;
   uint32_t N = 1000;
@@ -75,15 +75,10 @@ void left_waves_P() {
   double u_l = 0;
   double p_l = 1. / GAMMA;
 
-  double amplitude = 0.01;
-  double omega = 50;
-
-  double time = 100;
-
   auto dir_name = solver::solve_system_boundaries(x_0, x_n, time, N,
                                                   r_l, u_l, p_l,
                                                   amplitude, omega, P_wave_function, P_1_GAMMA_constant,
-                                                  boundaries::piston_P, boundaries::soft, true,
+                                                  boundaries::piston_P, boundaries::piston_P, true,
                                                   limiter::none);
 }
 
@@ -96,13 +91,35 @@ void left_waves_U(double amplitude = 0.01, double omega = 2 * M_PI) {
   double u_l = 0;
   double p_l = 1. / GAMMA;
 
-  double time = 100;
+  double time = 200;
 
   auto dir_name = solver::solve_system_boundaries(x_0, x_n, time, N,
                                                   r_l, u_l, p_l,
                                                   amplitude, omega, U_wave_function, P_1_GAMMA_constant,
                                                   boundaries::piston_U, boundaries::piston_P, true,
                                                   limiter::none);
+}
+
+
+
+void piston_wave(    double amplitude = 0.01, double omega = 4 * M_PI) {
+    double x_0 = 0;
+    double x_n = 1;
+    uint32_t N = 1000;
+
+    double r_l = 1;
+    double u_l = 0;
+    double p_l = 1. / GAMMA;
+
+
+
+    double time = 200;
+
+    auto dir_name = solver::solve_system_boundaries(x_0, x_n, time, N,
+                                                    r_l, u_l, p_l,
+                                                    amplitude, omega, P_function_one_wave, P_1_GAMMA_constant,
+                                                    boundaries::piston_P, boundaries::piston_P, false,
+                                                    limiter::none);
 }
 
 #endif //GODUNOV_SOLVER_COURSE_PAPER_TESTS_HPP

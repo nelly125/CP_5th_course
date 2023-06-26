@@ -16,7 +16,7 @@ auto mk_dir( uint32_t N, double time, double amplitude, double omega, double sig
 
   std::ostringstream streamObj3;
   streamObj3 << std::fixed;
-  streamObj3 << std::setprecision(2);
+  streamObj3 << std::setprecision(3);
   streamObj3 << time << "_" << amplitude << "_" << omega << "_" << sigma << "_" << diaph << "__" << left << "_" << right;
 
   std::string temp_string = std::to_string(N);

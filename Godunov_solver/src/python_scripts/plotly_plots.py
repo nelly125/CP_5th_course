@@ -44,7 +44,7 @@ for step in np.arange(0, length ):
         line=dict(color="blue", width=3),
         name="density",
         x=data_step(step).x,
-        y=data_step(step).r/data_step(0).r,
+        y=data_step(step).r,
         showlegend=False,
     ))
     fig.add_trace(row=1, col=2, trace=
@@ -53,7 +53,7 @@ for step in np.arange(0, length ):
         line=dict(color="green", width=3),
         name="velocity",
         x=data_step(step).x,
-        y=data_step(step).u/data_step(0).u,
+        y=data_step(step).u,
         showlegend=False,
     ))
     fig.add_trace(row=1, col=3, trace=
@@ -62,7 +62,7 @@ for step in np.arange(0, length ):
         line=dict(color="red", width=3),
         name="pressure",
         x=data_step(step).x,
-        y=data_step(step).p/data_step(0).p,
+        y=data_step(step).p,
         showlegend=False,
     ))
     fig.add_trace(row=2, col=1, trace=
@@ -133,17 +133,17 @@ ax_y_values = {"xaxis": "yaxis", "xaxis2": "yaxis2", "xaxis3": "yaxis3", "xaxis4
                "xaxis6": "yaxis6"}
 values_names = {"r": "log(density)", "u": "velocity", "p": "pressure", "s": "entropy", "Mach": "Mach",
                 "Temp": "Temperature"}
-# for ax in ax_values:
-#     fig['layout'][ax].update(range=[np.min(data[np.arange(len(data)) % n_cells != 0].x) - 0.05, np.max(data[np.arange(len(data)) % n_cells != 0].x) + 0.05], title_text='x',
-#                              title_font={"size": title_font_size},
-#                              tickfont=dict(family='Rockwell', color='black',
-#                                            size=ticks_font_size), dtick=0.2
-#                              )
-#     v = ax_values[ax]
-#     fig['layout'][ax_y_values[ax]].update(range=[np.min(data[np.arange(len(data)) % n_cells != 0][v]) - 0.05, np.max(data[np.arange(len(data)) % n_cells != 0][v]) + 0.05],
-#                                           # title_text=values_names[ax_values[ax]],
-#                                           title_font={"size": title_font_size},
-#                                           tickfont=dict(family='Rockwell', color='black', size=ticks_font_size))
+for ax in ax_values:
+    fig['layout'][ax].update(range=[np.min(data[np.arange(len(data)) % n_cells != 0].x) - 0.05, np.max(data[np.arange(len(data)) % n_cells != 0].x) + 0.05], title_text='x',
+                             title_font={"size": title_font_size},
+                             tickfont=dict(family='Rockwell', color='black',
+                                           size=ticks_font_size), dtick=0.2
+                             )
+    v = ax_values[ax]
+    fig['layout'][ax_y_values[ax]].update(range=[np.min(data[np.arange(len(data)) % n_cells != 0][v]) - 0.05, np.max(data[np.arange(len(data)) % n_cells != 0][v]) + 0.05],
+                                          # title_text=values_names[ax_values[ax]],
+                                          title_font={"size": title_font_size},
+                                          tickfont=dict(family='Rockwell', color='black', size=ticks_font_size))
 
 for i in fig['layout']['annotations']:
     i['font'] = dict(size=20,color='black')

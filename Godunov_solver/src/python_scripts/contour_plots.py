@@ -48,7 +48,7 @@ for ax in ax_values.keys():
     zi = interpolator(Xi, Yi)
 
     # ax.contour(xi, yi, zi, levels=14, linewidths=0.5, colors='k')
-    cntr1 = ax.contourf(xi, yi, zi, levels=14, cmap="RdBu_r")
+    cntr1 = ax.contourf(xi, yi, zi, levels=14, cmap="PuOr_r")
 
     fig.colorbar(cntr1, ax=ax)
     ax.set_xlabel("x", fontsize=15)
