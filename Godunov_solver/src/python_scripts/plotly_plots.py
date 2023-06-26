@@ -44,7 +44,7 @@ for step in np.arange(0, length ):
         line=dict(color="blue", width=3),
         name="density",
         x=data_step(step).x,
-        y=data_step(step).r,
+        y=data_step(step).log_r,
         showlegend=False,
     ))
     fig.add_trace(row=1, col=2, trace=
@@ -128,7 +128,7 @@ for i in range(0, len(fig.data), 6):
 title_font_size = 18
 ticks_font_size = 16
 
-ax_values = {"xaxis": "r", "xaxis2": "u", "xaxis3": "p", "xaxis4": "Mach", "xaxis5": "s", "xaxis6": "Temp"}
+ax_values = {"xaxis": "log_r", "xaxis2": "u", "xaxis3": "p", "xaxis4": "Mach", "xaxis5": "s", "xaxis6": "Temp"}
 ax_y_values = {"xaxis": "yaxis", "xaxis2": "yaxis2", "xaxis3": "yaxis3", "xaxis4": "yaxis4", "xaxis5": "yaxis5",
                "xaxis6": "yaxis6"}
 values_names = {"r": "log(density)", "u": "velocity", "p": "pressure", "s": "entropy", "Mach": "Mach",

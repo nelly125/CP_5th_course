@@ -424,32 +424,53 @@ std::string solver::solve_system(double x_0,
       dt_1 = time - ctime;
     }
 
-    if (left_boundary == boundaries::piston) {
-      P_0 = left_piston_func(x_0, left_0, amplitude, omega, ctime);
-      if (P_0 >= gas_0[0].p) {
-        a_0 = sqrt(gas_0[0].r * ((GAMMA + 1) / 2 * P_0 + (GAMMA - 1) / 2 * gas_0[0].p));
-        U_0 = gas_0[0].u + (P_0 - gas_0[0].p) / a_0;
-      } else {
-        U_0 = gas_0[0].u - 2 / (GAMMA - 1) * sqrt(GAMMA * gas_0[0].p / gas_0[0].r) *
-                           (1 - pow(P_0 / gas_0[0].p, g1));
+      switch (left_boundary) {
+          case boundaries::piston_P: {
+              P_0 = left_piston_func(x_0, left_0, amplitude, omega, ctime);
+              if (fabs(P_0 - gas_0[0].p) > 1e-7) {
+                  double a_2 = sqrt(gas_0[0].r * ((GAMMA + 1) / 2 * P_0 + (GAMMA - 1) / 2 * gas_0[0].p));
+                  U_0 = gas_0[0].u + (P_0 - gas_0[0].p) / a_2;
+              } else {
+                  U_0 = gas_0[0].u - 2 / (GAMMA - 1) * sqrt(GAMMA * gas_0[0].p / gas_0[0].r) *
+                                     (1 - pow(P_0 / gas_0[0].p, g1));
+              }
+              break;
+
+          }
+          case boundaries::piston_U : {
+              U_0 = left_piston_func(x_0, left_0, amplitude, omega, ctime);
+              double a_0_sq = GAMMA * gas_0[0].p / gas_0[0].r;
+              double W = U_0 - gas_0[0].u;
+              double D = (GAMMA + 1) * W / 4 + sqrt((GAMMA + 1) * (GAMMA + 1) * W * W / 16 + a_0_sq);
+              double u_right_p = gas_0[0].u - D;
+              double M_sq = (u_right_p * u_right_p) / a_0_sq;
+              P_0 = ((2 * GAMMA * M_sq) / (GAMMA + 1) - (GAMMA - 1) / (GAMMA + 1)) * gas_0[0].p;
+              break;
+          }
+          default : {
+              U_0 = 0;
+              P_0 = 0;
+          }
       }
-    } else {
-      U_0 = 0;
-      P_0 = 0;
-    }
-    if (right_boundary == boundaries::piston) {
-      P_n = right_piston_func(x_0, left_0, amplitude, omega, ctime);
-      if (P_n >= gas_0[N - 1].p) {
-        a_n = sqrt(gas_0[N - 1].r * ((GAMMA + 1) / 2 * P_n + (GAMMA - 1) / 2 * gas_0[N - 1].p));
-        U_n = gas_0[N - 1].u - (P_n - gas_0[N - 1].p) / a_n;
-      } else {
-        U_n = gas_0[N - 1].u + 2 / (GAMMA - 1) * sqrt(GAMMA * gas_0[N - 1].p / gas_0[N - 1].r) *
-                               (1 - pow(P_n / gas_0[N - 1].p, g1));
+
+      switch (right_boundary) {
+          case boundaries::piston_P : {
+              P_n = right_piston_func(x_0, left_0, amplitude, omega, ctime);
+              if (P_n >= gas_0[N - 1].p) {
+                  a_n = sqrt(gas_0[N - 1].r * ((GAMMA + 1) / 2 * P_n + (GAMMA - 1) / 2 * gas_0[N - 1].p));
+                  U_n = gas_0[N - 1].u - (P_n - gas_0[N - 1].p) / a_n;
+              } else {
+                  U_n = gas_0[N - 1].u + 2 / (GAMMA - 1) * sqrt(GAMMA * gas_0[N - 1].p / gas_0[N - 1].r) *
+                                         (1 - pow(P_n / gas_0[N - 1].p, g1));
+              }
+              break;
+
+              default: {
+                  U_n = 0;
+                  P_n = 0;
+              }
+          }
       }
-    } else {
-      U_n = 0;
-      P_n = 0;
-    }
 
     s_left = U_0;
     s_contact = find_s_cell(gas_0[i_contact], gas_0[i_contact + 1]);
@@ -478,13 +499,13 @@ std::string solver::solve_system(double x_0,
 
     for (uint32_t i = 0; i < N; ++i) {
       if (i == 0) {
-        std::cout << i << std::endl;
+//        std::cout << i << std::endl;
       }
       if (i == 1) {
-        std::cout << i << std::endl;
+//        std::cout << i << std::endl;
       }
       if (i == N - 1) {
-        std::cout << i << std::endl;
+//        std::cout << i << std::endl;
       }
 
       P_1 = P_2 = P_3 = 0.0;
@@ -498,7 +519,7 @@ std::string solver::solve_system(double x_0,
         dx_2 = dx_right_1;
       }
 
-      if (right_boundary == boundaries::piston && i == N - 1) {
+      if (right_boundary == boundaries::piston_P && i == N - 1) {
         P_1 = 0;
         P_2 = P_n;
         P_3 = P_n * U_n;
@@ -550,7 +571,7 @@ std::string solver::solve_system(double x_0,
 
       P_1 = P_2 = P_3 = 0.0;
 
-      if (left_boundary == boundaries::piston && i == 0) {
+      if (left_boundary == boundaries::piston_P && i == 0) {
         P_1 = 0;
         P_2 = P_0;
         P_3 = P_0 * U_0;

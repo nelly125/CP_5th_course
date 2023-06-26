@@ -82,7 +82,7 @@ void left_waves_P(double amplitude = 0.01, double omega = 2 * M_PI, double time 
                                                   limiter::none);
 }
 
-void left_waves_U(double amplitude = 0.01, double omega = 2 * M_PI) {
+void left_waves_U(double amplitude = 0.01, double omega = 2 * M_PI, double time = 200) {
   double x_0 = 0;
   double x_n = 1;
   uint32_t N = 1000;
@@ -90,8 +90,6 @@ void left_waves_U(double amplitude = 0.01, double omega = 2 * M_PI) {
   double r_l = 1;
   double u_l = 0;
   double p_l = 1. / GAMMA;
-
-  double time = 200;
 
   auto dir_name = solver::solve_system_boundaries(x_0, x_n, time, N,
                                                   r_l, u_l, p_l,

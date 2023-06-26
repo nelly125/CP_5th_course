@@ -257,13 +257,13 @@ void sod_test() {
   double x_n = 1;
   uint32_t N = 1000;
 
-  double r_l = 1.6923076923076923;
-  double u_l = 0.6067798762169179;
-  double p_l = 1.5;
+  double r_l = 1;
+  double u_l = 0;
+  double p_l = 1;
 
-  double r_r = 1;
+  double r_r = 0.125;
   double u_r = 0;
-  double p_r = 1/GAMMA;
+  double p_r = 0.1;
 
   double x_c = 0.5;
 
@@ -319,7 +319,21 @@ int main() {
 //  piston_up_U();
 //  left_waves_P();
 //  left_waves_U(0.03,  M_PI * 2);
-    left_waves_P(0.001,  M_PI * 2, 1000);
+//    left_waves_P(0.02,  M_PI * 2, 1000);
+    left_waves_P(0.001,  M_PI * 2 * 0.65, 1000);
+
+//    left_waves_U(0.01,  M_PI * 2, 1000);
+
+/*  solve_parameters(0.5,
+                  100,
+                   5,
+                   0.5,
+                   2,
+                   1000,
+                   P_1_function_one_wave,
+                   P_constant,
+                   boundaries::piston_P,
+                   boundaries::piston_P);*/
 
   return 0;
 

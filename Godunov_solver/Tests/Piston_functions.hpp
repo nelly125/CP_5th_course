@@ -15,7 +15,7 @@ double P_function( double x_0, double left_0, double amplitude, double omega, do
 }
 
 double P_constant( double x_0, double left_0, double amplitude, double omega, double time ) {
-  return 1.5;
+  return 1;
 }
 
 double P_function_one_wave( double x_0, double left_0, double amplitude, double omega, double time ) {
@@ -28,6 +28,18 @@ double P_function_one_wave( double x_0, double left_0, double amplitude, double 
   }
   return P_0;
 }
+
+double P_1_function_one_wave( double x_0, double left_0, double amplitude, double omega, double time ) {
+    double P_0;
+    double T = 2 * M_PI / omega;
+    if (time < T) {
+        P_0 = (1 + amplitude * sin(omega * (time)));
+    } else {
+        P_0 = 1;
+    }
+    return P_0;
+}
+
 
 double P_function_one_positive_wave( double x_0, double left_0, double amplitude, double omega, double time ) {
   double P_0;
